@@ -43,6 +43,7 @@ IV - Format of the JSON file used to create the latex output tables
 The user must provide one JSON file describing each latex result table he wants to obtain. 
 
 Such a file must contain an array (delimited by []) of objects (delimited by {}). Example of the structure of such a file:
+
     [{ TABLE_PARAMETERS },
      { ROW_PARAMETER },
      { COLUMN_PARAMETER }
@@ -109,7 +110,7 @@ The other entries are optional:
 Note that to use latex mathematical notations in the JSON file of a table (ex: in the displayed name of a column), you need put the expression between dollars and replace any backslash by two backslashes (ex : `$\\alpha$`).
 
 ## Resolution methods format
-Currently resolution methods must be code in Julia but eventually it should be able to use any language. The julia resolution method must:
+Currently resolution methods must be implemented in Julia but the package should eventually be able to use any language. The julia resolution method must:
 * take a single argument of type `Dictionary{Key, Any}` which, among others, contains the value of the parameters and the path of the current instance (which enables the method to access the data related to the instance);
 * return a `Dictionary{Key, Any}` which contains all the results to save.
 
