@@ -1,5 +1,8 @@
 module AutoExpe
 
-# Write your package code here.
+include("runExpe.jl")
+
+export autoExpe
+export addValuesToResults
 
 end

@@ -142,7 +142,7 @@ function autoExpe(expeJsonPath::String)
                     #      - results have been obtained in previous run(s))
                     # Note: Condition 2.2 enables the user to see all the results of previous runs immediatly after starting the experiment
                     if parameters.latexFormatPath != [] && (Dates.now()  > nextCompilationTime  || (!isFirstLatexCompiled &&  savedResultsFound))
-                        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), " Creating the latex table(s)")
+                        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , " Creating the latex table(s) in file ", parameters.latexOutputFile)
                         createTexTables(parameters)
                         nextCompilationTime = Dates.now() + Dates.Minute(parameters.minLatexCompilationInterval)
                         isFirstLatexCompiled = true
@@ -182,7 +182,7 @@ function autoExpe(expeJsonPath::String)
     end
 
     if parameters.latexFormatPath != nothing
-        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , " Creating the latex table(s)")
+        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , " Creating the latex table(s) in file ", parameters.latexOutputFile)
         createTexTables(parameters)
     end
     
@@ -524,7 +524,6 @@ function readExpeFormat(jsonFilePath::String)
                 parameters.latexFormatPath = [expeDict["latexFormatPath"]]
             else 
                 parameters.latexFormatPath = expeDict["latexFormatPath"]
-                @show parameters.latexFormatPath
             end 
         end
     end
