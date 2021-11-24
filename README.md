@@ -20,7 +20,12 @@ To use it, you provide:
 * the different values of each parameters;
 * (optional) the format of each result table.
 
-The package does the rest.
+The package does the rest which, among others, includes:
+* apply all resolution methods on all instances for all combination of values of all parameters;
+* manage the results: format, reading, writing;
+* display logs: progress, errors, warnings, ...;
+* interruption management: regular backups, resumption without unecessary recalculations;
+* generation of latex result tables during and after the experiment.
 
 ## Format of the JSON file used to define the experiment
 The user must provide a dictionary in a JSON file describing the experiment.
