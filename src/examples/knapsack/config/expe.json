@@ -1,0 +1,7 @@
+{
+    "instancesPaths":"./data",
+    "resolutionMethods": ["randomResolution", "ratioResolution"],
+    "latexFormatPath":  ["./config/averageTable.json", "./config/expandedTable.json"],
+    "latexOutputFile": "./results/result_tables.tex",
+    "parametersToCombine": {"knapsackCount": [1, 2, 3], "knapsacksSize": [10, 20, 30]}
+}

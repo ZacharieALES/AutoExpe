@@ -1,0 +1,18 @@
+[
+    {"caption": "Knapsack results", "expandInstances": true, "leftVline": false, "rightVline": false, "vlineAfterRowParams": false, "hideInstanceExtension": true},
+    {"rowParameterName": "knapsacksSize", "displayedName": "$K$", "hline": true},
+    {"rowParameterName": "knapsackCount", "displayedName": "$m$", "hline": true},
+    {"columnGroupName": "Objective", "isBestValueMinimal": false, "highlightBestValue": true, "vlineAfter": false, "columns":
+     [
+	 {"columnParameters": "objectiveValue", "digits": 0, "displayedName": "Random", "method": "randomResolution", "vline": false},
+	 {"columnParameters": "objectiveValue", "digits": 0, "displayedName": "Ratio", "method": "ratioResolution", "vline": false}
+     ]
+    },
+    {"function": "gap", "columnParameters": [{"name": "objectiveValue", "method": "ratioResolution"}, {"name": "objectiveValue", "method": "randomResolution"}], "displayedName": "", "vline": false, "prefix": "(+", "suffix": "\\%)", "digits": 0},
+    {"columnGroupName": "Time (ms)", "vlineAfter": false, "columns":
+     [
+	 {"columnParameters": "auto_expe_resolution_time", "digits": 2, "displayedName": "Random", "method": "randomResolution", "vline": false, "multiplier": 1000},
+	 {"columnParameters": "auto_expe_resolution_time", "digits": 2, "displayedName": "Ratio", "method": "ratioResolution", "vline": false, "multiplier": 1000}
+     ]
+    }
+]
