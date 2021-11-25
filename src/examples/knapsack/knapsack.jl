@@ -56,7 +56,7 @@ function knapsackHeuristicResolution(param::Dict{String, Any}; isRandom::Bool=fa
     instance = KnapsackInstance(param["instancePath"])
 
     n = length(instance.weights)
-    m = param["knapsackCount"]
+    m = param["knapsacksCount"]
     K = param["knapsacksSize"]
 
     order = nothing
