@@ -123,7 +123,7 @@ For example:
     
 ## Resolution methods format
 Currently  resolution methods  must be  implemented in  Julia but  the
-package should eventually be able to use with resolution methods from any language. The julia resolution methods must:
+package should eventually be able to execute any resolution method from any language. The julia resolution methods must:
 * take  a single argument  of type `Dictionary{Key, Any}`.  This input
   will provide a value for each parameter and the path of the current instance (which enables the method to access the data related to the instance);
 * return a `Dictionary{Key, Any}` which contains all the results to save.

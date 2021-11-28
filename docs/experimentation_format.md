@@ -55,6 +55,7 @@ or an array of extensions:
 Path of the instance files. This entry can contain:
 * the path of single instances:
 
+
     "instancePath": "./data/instance1.txt"
 	
 or 
