@@ -1,7 +1,7 @@
 [
     {"caption": "Knapsack results", "leftVline": false, "rightVline": false, "vlineAfterRowParams": false},
     {"rowParameterName": "knapsacksSize", "displayedName": "$K$", "hline": true},
-    {"rowParameterName": "knapsackCount", "displayedName": "$m$", "hline": false},
+    {"rowParameterName": "knapsacksCount", "displayedName": "$m$", "hline": false},
     {"columnGroupName": "Objective", "isBestValueMinimal": false, "highlightBestValue": true, "vlineAfter": false, "columns":
      [
 	 {"columnParameters": "objectiveValue", "digits": 0, "displayedName": "Random", "method": "randomResolution", "vline": false},

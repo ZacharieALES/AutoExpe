@@ -1,6 +1,8 @@
 # Format of a latex table file
 
-The JSON which describes a latex table contains an array of dictionaries. Each dictionary either corresponds to:
+To create a latex table within an experiment, you must describe it in a
+JSON  file and  specify  the path  of this  file  in your  [experiment
+file](./experimentation_format.md). The latex table file must contain an array of dictionaries. Each dictionary either corresponds to:
 * the parameters of the table;
 * a row parameter;
 * a column parameter;
