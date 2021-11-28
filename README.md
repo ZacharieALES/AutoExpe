@@ -59,7 +59,7 @@ Here is the content of the JSON file used to describe the experiment of the knap
 
 More details on the format are available [here](./docs/experimentation_format.md).
 
-### Format of the JSON file used to create a latex table
+### Format of a latex table file 
 The user describes a latex table in a JSON file which contains one array of dictionaries. 
 
 Example of the structure of such a file:
@@ -77,7 +77,7 @@ Each dictionary either represents:
 
 The following quickly describes the format of each of these entries. More details are available [here](./docs/latex_table_format.md).
 
-The content of the JSON file used to describe the table above is available [here](./src/examples/knapsack/config/averagedTable.json).
+The content of the JSON file used to describe the table above is available [here](./src/examples/knapsack/config/averageTable.json).
 
 
 #### Table parameters (optional)
@@ -128,4 +128,4 @@ package should eventually be able to use with resolution methods from any langua
   will provide a value for each parameter and the path of the current instance (which enables the method to access the data related to the instance);
 * return a `Dictionary{Key, Any}` which contains all the results to save.
 
-For example, methods `randomResolution` or `ratioResolution` from [knapsack.jl](./src/examples/knapsack/knapsack.jl).
+See for example, methods `randomResolution` or `ratioResolution` from [knapsack.jl](./src/examples/knapsack/knapsack.jl).
