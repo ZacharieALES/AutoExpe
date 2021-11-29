@@ -3477,7 +3477,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="format"
-     style="display:none">
+     style="display:inline">
     <path
        sodipodi:nodetypes="cc"
        inkscape:connector-curvature="0"
@@ -3736,7 +3736,8 @@
   <g
      inkscape:groupmode="layer"
      id="layer5"
-     inkscape:label="column_parameter">
+     inkscape:label="column_parameter"
+     style="display:none">
     <rect
        ry="2.9797361"
        y="83.102829"
