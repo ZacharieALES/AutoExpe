@@ -29,7 +29,7 @@ This dictionary  describes the general properties of the table. Here is the dict
 
 and its illustration:
 <p align="center">
-    <img src="images/knapsack_table_parameters.png" alt="Table parameters of the knapsack result table" width="550"/>
+    <img src="images/knapsack_table_parameters.png" alt="Table parameters of the knapsack result table" width="700"/>
 </p>
 
 ### Possible entries of the latex table dictionary

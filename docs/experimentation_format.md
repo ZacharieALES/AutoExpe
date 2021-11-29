@@ -73,3 +73,18 @@ Path of the instance files. This entry can contain:
  
          "instancePath": {"name": "./data", "isRecursive": true}
 
+
+The reference directory for relative paths is the directory in which julia is executed.
+
+### latexFormatPath (optional)
+
+Path of the [latex format file(s)](./latex_table_format.md). An array can be used if several latex tables are generated.
+
+Examples:
+
+    "latexFormatPath": "./MY_TABLE_FORMAT.json"
+    "latexFormatPath": ["./config/averageTable.json", "./config/expandedTable.json"]
+
+### latexOutputFile (optional)
+
+Path in which the .tex file of the tables is created and compiled.

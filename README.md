@@ -1,16 +1,15 @@
 # AutoExpe
 Automates repetitive tasks in numerical experiments and the generation of result tables.
 
-## Is it useful to me?
 This package can be useful if you have:
 * 1 *problem* (e.g., a [multiple knapsack problem](./docs/knapsack.md));
-* at least 1 *instance* of this problem (e.g, [weight and values of the objects that can be added in the knapsacks](./src/examples/knapsack/data/knapsack1.json));
-* at least 1 *resolution method* to solve this problem (e.g., [two knapsack methods](./docs/knapsack.md#heuristics));
-* (optional) *parameters* of the problem (e.g., the number of knapsack <img src="https://render.githubusercontent.com/render/math?math=m"> and the size of the knapsacks <img src="https://render.githubusercontent.com/render/math?math=K">).
+* at least 1 *instance* of this problem (e.g, [weights and values of the objects that can be added in the knapsacks](./src/examples/knapsack/data/knapsack1.json));
+* at least 1 *resolution method* to solve this problem (e.g., [these two knapsack methods](./docs/knapsack.md#heuristics));
+* (optional) *parameters* of the problem (e.g., the number of knapsacks <img src="https://render.githubusercontent.com/render/math?math=m"> and the size of the knapsacks <img src="https://render.githubusercontent.com/render/math?math=K">).
 
 and if you want to automate:
-* the resolution of each instance with each method for each combination of value of the parameters;
-* the creation of latex result tables such as the following one.
+* the resolution of each instance by each method for each combination of the values of the parameters;
+* the creation of latex result tables.
 
 
 Here is an example of a table generated from the  [knapsack example](./src/examples/knapsack):
@@ -26,7 +25,7 @@ To perform an experiment through this package, you must provide:
 * the different values of each parameters;
 * the format of each result latex table (optional).
 
-The package does the rest which, among others, includes:
+The package does the rest which includes:
 * apply all resolution methods on all instances for all combination of values of all parameters;
 * manage the results: format, reading, writing;
 * display logs: progress, errors, warnings, ...;
@@ -113,7 +112,11 @@ If the  value in the column  is obtained from several  results in the
 result files, `"columnParameters"`  must be an array.  For example, if
 we want  to compute the  mean of two  values `"v1"` and  `"v2"` both returned by the method `"myMethod"`, we would use:
 
-    {"columnParameters": ["v1", "v2"], "function": "mean", method": "myMethod"}
+    {
+      "columnParameters": ["v1", "v2"],
+      "function": "mean",
+      method": "myMethod"
+    }
     
 #### Group of columns
 This dictionary must contain the entries:
@@ -130,9 +133,9 @@ For example:
 ### Resolution methods format
 Currently  resolution methods  must be  implemented in  Julia but  the
 package should eventually be able to execute any resolution method from any language. The julia resolution methods must:
-* take  a single argument  of type `Dictionary{Key, Any}`.  This input
+* take  a single argument  of type `Dictionary{String, Any}`.  This input
   will both provide a value for each parameter and the path of the current instance (which enables the method to access the data related to the instance);
-* return a `Dictionary{Key, Any}` which contains all the results to save.
+* return a `Dictionary{String, Any}` which contains all the results to save.
 
 Here is an example inspired from method `ratioResolution` from [knapsack.jl](./src/examples/knapsack/knapsack.jl):
 
@@ -150,7 +153,7 @@ Here is an example inspired from method `ratioResolution` from [knapsack.jl](./s
     
         # ... solve the problem ...
     
-        # Create the output dictionary and fill it with all the results to be saved    
+        # Create the output dictionary and fill it with all the results to save
         results = Dict{String, Any}()
         results["resolutionTime"] = resolutionTime
         results["objectiveValue"] = objectiveValue
