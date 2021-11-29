@@ -1,5 +1,5 @@
 [
-    {"caption": "Knapsack results", "expandInstances": true, "leftVline": false, "rightVline": false, "vlineAfterRowParams": false, "hideInstanceExtension": true},
+    {"caption": "Knapsack results", "leftVline": false, "rightVline": false, "vlineAfterRowParams": false},
     {"rowParameterName": "knapsacksSize", "displayedName": "$K$", "hline": true},
     {"rowParameterName": "knapsacksCount", "displayedName": "$m$", "hline": true},
     {"columnGroupName": "Objective", "isBestValueMinimal": false, "highlightBestValue": true, "vlineAfter": false, "columns":

@@ -26,10 +26,10 @@ Resolution methods used to solve the instances in this experiment. One method ca
     * a key `"name"` (mandatory) which value is a string equal to the name of the Julia method; and
     * a key `"module"` (optional) which value is a string equal to the
       name of the Julia module in which the method is defined. If this
-      key is  missing, the `Main`  module is first considered  and the
+      key is  missing, the `Main`  module is first considered  and then
       all other loaded modules.
 
-The  entry  `"resolutionMethods"`  can  only  contain  one  resolution
+The  entry  `"resolutionMethods"`  can  either only  contain  one  resolution
 method:
 
     "resolutionMethods": "function1"
@@ -40,7 +40,7 @@ or an array or resolution methods if several are considered:
 
 ### extensions (optional)
 
-Considered filename extensions  for the instance files  (by default only
+Allowed  filename extensions  for the instance files  (by default only
 txt and  json extensions  are considered).  This entry  can either  be a
 single extension:
 
@@ -53,10 +53,11 @@ or an array of extensions:
 ### instancePath (mandatory)
 
 Path of the instance files. This entry can contain:
-* the path of single instances
+* the path of a single instance:
 
         "instancePath": "./data/instance1.txt"
-or 
+
+* the path of several instances:
 
         "instancePath": ["./data/instance1.txt", "./data/instance2.txt"]
 	
@@ -64,10 +65,10 @@ or
 
         "instancePath": "./data"
 		
-   All files inside the folder which have a valid extension is added to
+   In that last case, all files inside the folder which have a valid extension is added to
    the list of instances.  By default the folder is browsed non
    recursively. To browse it recursively, the folder must be specified
-   by a dictionary with an entry "name" and an entry `"isRecursive"` set
+   by a dictionary with an entry `"name"` and an entry `"isRecursive"` set
    to `"true"`:
  
          "instancePath": {"name": "./data", "isRecursive": true}
