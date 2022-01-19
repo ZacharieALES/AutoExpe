@@ -2,7 +2,7 @@ module AutoExpe
 
 include("runExpe.jl")
 
-export addValuesToResults
 export autoExpe
+export addValuesToResults
 
 end
