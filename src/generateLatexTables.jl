@@ -105,12 +105,16 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
             displayedValue = combinationResults.combination[i]
 
             # If it is a numerical value
-            numValue = numericalValue(value)
-            
+            numValue = numericalValue(displayedValue)
+
             if numValue != nothing
-                numValue *= rowVariable.multiplier # Multiply it
-                if rowVariable.digits != -1
-                    numValue = round(numValue, digits = rowVariable.digits) # Round it
+                numValue *= rowVariables[i].multiplier # Multiply it
+                if rowVariables[i].digits != -1 # Round it if required
+                    if rowVariables[i].digits == 0
+                        numValue = round(Int, numValue)
+                    else
+                        numValue = round(numValue, digits = rowVariables[i].digits)
+                    end 
                 end
                 displayedValue = numValue
             end
@@ -358,7 +362,6 @@ function numericalValue(v)
     else
         intValue = nothing
         floatValue = nothing
-
         try
             intValue = tryparse(Int, v)
         catch e
