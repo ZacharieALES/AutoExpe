@@ -197,6 +197,12 @@ mutable struct RowVariable
     # True if the table includes a horizontal line between different values of this variable
     hlineBetweenValues::Bool
 
+    # Attribute by which each value of the row variable will be multiplied in the latex tables
+    multiplier::Float64
+
+    # Number of digits displayed for this row variable in the latex result tables
+    digits::Int
+
     function RowVariable()
         return new()
     end
@@ -211,6 +217,8 @@ function RowVariable(valInfo::ValueInformation; displayedName::String=valInfo.ke
     this.valInfo = valInfo
     this.displayedName = displayedName
     this.hlineBetweenValues = hlineBetweenValues
+    this.multiplier = 1.0
+    this.digits = -1
 
     return this
 end
@@ -230,7 +238,7 @@ mutable struct Column
     # True if there is a vertical line after this column
     vlineAfter::Bool
 
-    # Number of digits after the decimal 
+    # Number of digits after the decimal of the values in the column
     digits::Int
 
     # Function which specifies how the value of the column is computed from the vector of variables namesInFile
@@ -544,7 +552,6 @@ function InstanceResults(parameters::ExpeParameters, instancePath::String, insta
     return this
 end
 
-
 """
 Represents all the relevant information related to the results of a combination of the row parameters.
 """
@@ -563,7 +570,7 @@ mutable struct CombinationResults
     clineColumns::Vector{Int}
 
     # Values displayed for the combination
-    # (used only if the table displays mean values of the instances, otherwise instancesResults.)
+    # (used only if the table displays mean values of the instances, otherwise the displayed values are in instancesResults.)
     displayedValues::Vector{TableValue}
     
     function CombinationResults()

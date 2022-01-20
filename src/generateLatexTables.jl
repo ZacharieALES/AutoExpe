@@ -14,7 +14,6 @@ function createTexTables(parameters::ExpeParameters; compileTexFile::Bool=true)
 
     tableConstructed = false
 
-    @show parameters.latexFormatPath
     for tableStructure in parameters.latexFormatPath
         println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t Creating table from ", tableStructure) 
         isValid = createTexTable(parameters, tableStructure, outputstream)
@@ -55,7 +54,7 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
     results = Vector{Dict{String, Any}}(getResults(parameters))
     
     # tableCombinations[i]::CombinationResults: all results used to compute values in row(s) of combination n°i
-    # (i.e., results which correspond to the combination of values of the row variables used in row n°i)
+    # (i.e., results which correspond to the combination of values of the row variables used in row n°i of the table)
     tableCombinations = splitResultsByCombination(parameters, tableParam, results, columns, rowVariables)
 
     # If none of the row variables has a value in the result files, do not create the table
@@ -102,10 +101,24 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
         # For each row variable
         for i in 1:length(rowVariables)
 
-            latexAllRowVariables *= string(combinationResults.combination[i]) * " & "
+            # Get its value in the current combination
+            displayedValue = combinationResults.combination[i]
+
+            # If it is a numerical value
+            numValue = numericalValue(value)
+            
+            if numValue != nothing
+                numValue *= rowVariable.multiplier # Multiply it
+                if rowVariable.digits != -1
+                    numValue = round(numValue, digits = rowVariable.digits) # Round it
+                end
+                displayedValue = numValue
+            end
+            
+            latexAllRowVariables *= string(displayedValue) * " & "
             
             if combinationId > 1 && combinationResults.combination[i] != tableCombinations[combinationId-1].combination[i]     
-                latexModifiedRowVariables *= string(combinationResults.combination[i])
+                latexModifiedRowVariables *= string(displayedValue)
             end
             
             latexModifiedRowVariables *=  " & "
@@ -122,7 +135,7 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
                 latexRow = latexModifiedRowVariables
             end 
 
-            rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(combinationResults.displayedValues, mustReprintHeader, outputstream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam)
+            rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(combinationResults.displayedValues, mustReprintHeader, outputstream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam, containColumnGroups)
             
         else # If the result of each instance is on a different line
 
@@ -172,7 +185,10 @@ function getTableFooter(caption::String; hasMissingValues::Bool=false)
     end 
 
     tableFooter *= raw"""}
-    \end{table}""" * "\n\n"
+    \end{table}
+    \newpage
+
+    """
 
     return tableFooter 
 end
@@ -518,7 +534,17 @@ function readLatexFormat(jsonFilePath::String)
                 end
 
                 hline = haskey(entry, "hline") && entry["hline"]
-                push!(rows, RowVariable(vi, hlineBetweenValues=hline, displayedName=displayedName))
+                rowVar = RowVariable(vi, hlineBetweenValues=hline, displayedName=displayedName)
+                
+                if haskey(entry, "multiplier") && numericalValue(entry["multiplier"]) != nothing
+                    rowVar.multiplier = numericalValue(entry["multiplier"])
+                end
+
+                if haskey(entry, "digits") && numericalValue(entry["digits"]) != nothing
+                    rowVar.digits = numericalValue(entry["digits"])
+                end
+
+                push!(rows, rowVar)
                 
             else # If the parameter has invalid indexes
                 println("Warning: The indexes of row parameters must be numerical values. The row parameter is ignored.\n\trow parameter name: ", parameterName, "\n\tInvalid indexes: ", invalidEntries)
@@ -751,7 +777,7 @@ Output
 """
 function splitResultsByCombination(parameters::ExpeParameters, tableParam::TableParameters, results::Vector{Dict{String, Any}}, columns::Vector{Any}, rowVariables::Vector{RowVariable})
 
-    # Get for each row variable all its possible values
+    # For each row variable, get all its possible values
     # rowValues[i] is an array including all the values of the ith row variable in rowVariables
     rowValues = getVariablesValues(rowVariables, results, parameters)
 
@@ -1414,7 +1440,7 @@ Input
 - tableHasMissingValues: true if the current table has missing values
 - tableParam: parameters of the table
 """
-function addResultsToRow(tableValues::Vector{TableValue}, mustReprintHeader::Bool, outputstream, tableHeader::String, latexRow::String, rowCount::Int, tableHasMissingValues::Bool, tableParam::TableParameters)
+function addResultsToRow(tableValues::Vector{TableValue}, mustReprintHeader::Bool, outputstream, tableHeader::String, latexRow::String, rowCount::Int, tableHasMissingValues::Bool, tableParam::TableParameters, containColumnGroups::Bool)
 
     if mustReprintHeader
         println(outputstream, tableHeader)

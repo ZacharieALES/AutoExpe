@@ -323,7 +323,7 @@ function readInstanceFolder(folderPath::String, extensions::Vector{String}, isRe
         elseif isExtensionValid(file, extensions)
             push!(instances, folderPath * "/" * file)
         else
-            println("Warning: file ignored since it is either a folder or a file with an invalid extension:\n\tfile path: ", file)
+            println("Warning: data file ignored since it is either a folder or a file with an invalid extension.\n\tfile path: ", file)
         end 
     end
 
