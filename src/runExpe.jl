@@ -408,6 +408,7 @@ function getMethods(iMethods)
                 try
                     push!(methods, getfield(Main, Symbol(cName)))
                     moduleFound = true
+		    println("Debug: method found in package Main.")
                 catch e
                     println("Debug: no function of name ", cName, " found in module Main")
                 end
@@ -453,9 +454,14 @@ function readExpeFormat(jsonFilePath::String)
     stringdata=join(readlines(jsonFilePath))
     expeDict = JSON.parse(stringdata)
 
+    if !isa(expeDict, Dict)
+       println("Error: The json file describing the experiment (", jsonFilePath, ") does not contain a dictionary.")
+       return nothing
+    end    
+
     # Test if the experiment format is valid
     if !haskey(expeDict, "instancesPaths") || !haskey(expeDict, "resolutionMethods")
-        println("Warning: The json file describing the experiment must contain a dictionary with at least an entry \"resolutionMethods\" and an entry \"instancesPaths\"")
+        println("Error: The json file describing the experiment must contain a dictionary with at least an entry \"resolutionMethods\" and an entry \"instancesPaths\"")
         return nothing
     end
 

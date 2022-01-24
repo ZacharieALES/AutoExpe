@@ -88,3 +88,7 @@ Examples:
 ### latexOutputFile (optional)
 
 Path in which the .tex file of the tables is created and compiled.
+
+### outputPath (optional)
+
+Path in which the result files are stored (default value: "./results/.expeResults/").

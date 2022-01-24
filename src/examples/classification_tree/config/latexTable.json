@@ -1,0 +1,12 @@
+[
+    {"caption": "Résultats obtenus.", "leftVline": false, "rightVline": false, "vlineAfterRowParams": false},
+    {"rowParameterName": "multivariate", "displayedName": "Multivarié ?", "hline": true},
+    {"rowParameterName": "dataSet", "displayedName": "Dataset", "hline": true},
+    {"rowParameterName": "D", "displayedName": "$D$", "hline": true},
+    {"rowParameterName": "mergePercentage", "displayedName": "$\\%$", "hline": false},
+    {"columnParameters": "clusterCount", "digits": 0, "displayedName": "Clusters", "method": "build_tree", "vline": false},
+    {"columnParameters": "resolutionTime", "digits": 0, "displayedName": "Temps", "method": "build_tree", "vline": false, "suffix": "s"},
+    {"columnParameters": "gap", "digits": 2, "displayedName": "Gap", "method": "build_tree", "vline": false, "suffix": "\\%"},
+    {"columnParameters": "train_error", "digits": 0, "displayedName": "\\% erreurs train", "method": "build_tree", "vline": false},
+    {"columnParameters": "test_error", "digits": 0, "displayedName": "\\% erreurs test", "method": "build_tree", "vline": false},
+]
