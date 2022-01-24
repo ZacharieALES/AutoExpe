@@ -17,7 +17,11 @@ function autoExpe(expeJsonPath::String)
     resolutionId = 0
     isFirstResolution = false
     savedResultsFound = false
-    
+
+    if !isdir(parameters.outputPath)
+        mkpath(parameters.outputPath)
+    end
+
     for instancePath in parameters.instancesPath
 
         instanceName = splitext(basename(instancePath))[1]
