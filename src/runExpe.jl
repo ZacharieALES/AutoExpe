@@ -165,7 +165,10 @@ function autoExpe(expeJsonPath::String)
                     push!(instanceResults, outputResult)
                     
                     if parameters.verbosity != :None
-                        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t Results: ", getString(dictResults))
+                        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t Results: ")
+                        for (key, value)in dictResults
+                            println("\t\t\t", key, " = ", value)
+                        end 
                     end
 
                     # and save them
