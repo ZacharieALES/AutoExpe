@@ -89,52 +89,52 @@ function autoExpe(expeJsonPath::String)
             for methodId in 1:length(parameters.resolutionMethods)
 
                 currentMethodName = string(nameof(parameters.resolutionMethods[methodId]))
-                if parameters.verbosity != :None
-                    print(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , "\t\t Resolution method \"", currentMethodName, "\" (", floor(Int, 100 * resolutionId / resolutionCount),"%)... ")
-                end 
+
+                methodLog = String(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS")) * "\t\t Resolution method \"" * currentMethodName * "\" (" * String(floor(Int, 100 * resolutionId / resolutionCount)) * "%)... "
                 resolutionId += 1
 
                 ## Test if the resolution must be done or not
                 mustSolve = parameters.computeUnsolvedResults
 
                 # If unsolved results must be solved and if results already saved must not be recomputed, then test if this result is already solved
-                if parameters.computeUnsolvedResults && !parameters.recomputeSavedResults
+                if parameters.computeUnsolvedResults
+                    if !parameters.recomputeSavedResults
 
-                    resultId = 1
-                    combinationFoundInResults = false
+                        resultId = 1
+                        combinationFoundInResults = false
 
-                    # While we have not tested that all the solved combinations are different from the one we want to compute
-                    while resultId <= length(instanceResults) && !combinationFoundInResults
+                        # While we have not tested that all the solved combinations are different from the one we want to compute
+                        while resultId <= length(instanceResults) && !combinationFoundInResults
 
-                        resultDict = instanceResults[resultId]
-                        
-                        # If the result corresponds to the current resolution method
-                        if resultDict["resolutionMethodName"] == currentMethodName
+                            resultDict = instanceResults[resultId]
+                            
+                            # If the result corresponds to the current resolution method
+                            if resultDict["resolutionMethodName"] == currentMethodName
 
-                            # Test all the parameters of the combination to see if they are equal to the parameter of the result
-                            combinationFoundInResults = true
-                            paramId = 1
-                            while paramId <= length(combinationKeys) && combinationFoundInResults
+                                # Test all the parameters of the combination to see if they are equal to the parameter of the result
+                                combinationFoundInResults = true
+                                paramId = 1
+                                while paramId <= length(combinationKeys) && combinationFoundInResults
 
-                                # If any parameter does not correspond, the result is not a match
-                                if !haskey(resultDict, combinationKeys[paramId]) || resultDict[combinationKeys[paramId]] != dictCombination[combinationKeys[paramId]]
-                                    combinationFoundInResults = false
+                                    # If any parameter does not correspond, the result is not a match
+                                    if !haskey(resultDict, combinationKeys[paramId]) || resultDict[combinationKeys[paramId]] != dictCombination[combinationKeys[paramId]]
+                                        combinationFoundInResults = false
+                                    end
+                                    paramId += 1
                                 end
-                                paramId += 1
                             end
+                            resultId += 1
                         end
-                        resultId += 1
-                    end
 
-                    if combinationFoundInResults
-                        print("Skipped (already solved)")
-                        savedResultsFound = true
-                    end
-                    
-                    mustSolve = !combinationFoundInResults
+                        if combinationFoundInResults
+                            methodLog *= "Skipped (already solved)" 
+                            savedResultsFound = true
+                        end
+                        mustSolve = !combinationFoundInResults 
+                    end 
+                else
+                    methodLog *= "Skipped (not solving unsolved results)"
                 end
-
-                println()
 
                 # If the combination must be solved for this method
                 if mustSolve
@@ -150,7 +150,9 @@ function autoExpe(expeJsonPath::String)
                         createTexTables(parameters)
                         nextCompilationTime = Dates.now() + Dates.Minute(parameters.minLatexCompilationInterval)
                         isFirstLatexCompiled = true
-                    end 
+                    end
+
+                    println(methodLog)
 
                     # Solve it
                     startingTime = time()
@@ -176,12 +178,11 @@ function autoExpe(expeJsonPath::String)
                         JSON.print(fout, instanceResults, 4)
                     end
                     println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), " Wrote in ", outputFile)
-
-                else
-                    if parameters.verbosity == :Debug || parameters.verbosity == :All
-                        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t Skipped (already solved for this method).")
+                else     
+                    if parameters.verbosity != :None
+                        println(methodLog)
                     end 
-                end 
+                end
             end
 
             isFirstCombination = false
