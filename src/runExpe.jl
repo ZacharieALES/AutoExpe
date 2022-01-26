@@ -146,7 +146,7 @@ function autoExpe(expeJsonPath::String)
                     #      - results have been obtained in previous run(s))
                     # Note: Condition 2.2 enables the user to see all the results of previous runs immediatly after starting the experiment
                     if parameters.latexFormatPath != [] && (Dates.now()  > nextCompilationTime  || (!isFirstLatexCompiled &&  savedResultsFound))
-                        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , " Creating the latex table(s) in file ", parameters.latexOutputFile)
+                        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , "\t\t Creating the latex table(s) in file ", parameters.latexOutputFile)
                         createTexTables(parameters)
                         nextCompilationTime = Dates.now() + Dates.Minute(parameters.minLatexCompilationInterval)
                         isFirstLatexCompiled = true
@@ -165,11 +165,27 @@ function autoExpe(expeJsonPath::String)
                     outputResult = merge(dictCombination, dictResults)
                     outputResult["resolutionMethodName"] = currentMethodName
                     push!(instanceResults, outputResult)
-                    
+
+                    # Display the results
                     if parameters.verbosity != :None
                         println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t Results: ")
                         for (key, value) in dictResults
-                            println("\t\t\t", key, " = ", value)
+                            print(" "^22, "\t\t\t", key, " = ")
+
+                            try
+                                # Try to round numerical values
+                                roundedValue = string(round.(value, digits = 2))
+
+                                # If the rounding remove decimals
+                                if length(roundedValue) < length(string(value))
+                                    println(roundedValue)
+                                else
+                                    println(value)
+                                end 
+                            catch e
+                                # If the value cannot be rounded (i.e., if it contains non numerical values)
+                                println(value)
+                            end 
                         end 
                     end
 
