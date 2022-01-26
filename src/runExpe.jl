@@ -90,7 +90,7 @@ function autoExpe(expeJsonPath::String)
 
                 currentMethodName = string(nameof(parameters.resolutionMethods[methodId]))
 
-                methodLog = String(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS")) * "\t\t Resolution method \"" * currentMethodName * "\" (" * String(floor(Int, 100 * resolutionId / resolutionCount)) * "%)... "
+                methodLog = string(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS")) * "\t\t Resolution method \"" * currentMethodName * "\" (" * string(floor(Int, 100 * resolutionId / resolutionCount)) * "%)... "
                 resolutionId += 1
 
                 ## Test if the resolution must be done or not
@@ -168,7 +168,7 @@ function autoExpe(expeJsonPath::String)
                     
                     if parameters.verbosity != :None
                         println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t Results: ")
-                        for (key, value)in dictResults
+                        for (key, value) in dictResults
                             println("\t\t\t", key, " = ", value)
                         end 
                     end

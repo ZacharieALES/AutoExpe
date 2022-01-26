@@ -15,7 +15,7 @@ function createTexTables(parameters::ExpeParameters; compileTexFile::Bool=true)
     tableConstructed = false
 
     for tableStructure in parameters.latexFormatPath
-        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t Creating table from ", tableStructure) 
+        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t\t Creating table from ", tableStructure) 
         isValid = createTexTable(parameters, tableStructure, outputstream)
         if isValid
             tableConstructed = true
