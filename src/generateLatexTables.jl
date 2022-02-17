@@ -162,7 +162,7 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
 
                 instanceResults = combinationResults.instancesResults[instancesName[instanceId]]
                 
-                rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(instanceResults.displayedValues, mustReprintHeader, outputstream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam) 
+                rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(instanceResults.displayedValues, mustReprintHeader, outputstream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam, containColumnGroups) 
             end
         end
 
