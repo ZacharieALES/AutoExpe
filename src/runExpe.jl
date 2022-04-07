@@ -570,6 +570,11 @@ function readExpeFormat(jsonFilePath::String)
         if !(typeof(expeDict["parametersToCombine"]) <: Dict)
             println("Warning: the parametersToCombine of the experiment must be a Dictionary (current value: ", expeDict["parametersToCombine"], " current type: ", typeof(expeDict["parametersToCombine"]), ")")
         else
+            for (key, value) in expeDict["parametersToCombine"]
+                if !(typeof(value) <:Vector)
+                    expeDict["parametersToCombine"][key] = [value]
+                end 
+            end 
             parameters.parametersToCombine = expeDict["parametersToCombine"]
         end
     end 
