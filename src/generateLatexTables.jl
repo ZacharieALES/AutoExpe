@@ -792,11 +792,6 @@ function splitResultsByCombination(parameters::ExpeParameters, tableParam::Table
         end 
     end
 
-    if length(rowVariables) == 0
-        println("Warning: No value found for any of the row variables. The table cannot be constructed.")
-        return nothing
-    end 
-
     ## Get the number of result columns
     resultColumnsCount = 0
     
@@ -865,6 +860,10 @@ function splitResultsByCombination(parameters::ExpeParameters, tableParam::Table
         for i in 1:length(combinationIds)
             previousCombinationIds[i] = combinationIds[i]
         end
+
+        if length(rowVariables) == 0
+            isOver = true
+        end 
 
         while !nextCombinationFound && !isOver
 
