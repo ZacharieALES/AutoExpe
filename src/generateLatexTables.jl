@@ -1122,6 +1122,11 @@ function computeInstanceValues(parameters::ExpeParameters, instanceResults::Inst
     # Represents all the values computed for this instance
     instanceComputedResults = Vector{Any}()
 
+    # If the first resolution method required to compute values in this column does not have any result
+    if !haskey(instanceResults.methodResults, vResolutionMethods[1])
+        return instanceComputedResults
+    end 
+
     # For each result obtained for this instance for the first resolution method
     for methodResult in instanceResults.methodResults[vResolutionMethods[1]].results
 
