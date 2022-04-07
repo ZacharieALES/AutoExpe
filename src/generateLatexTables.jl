@@ -158,7 +158,9 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
                 end
 
                 # TODO: remove extension according to tableParam.hideInstancesExtension
-                latexRow *= basename(instancesName[instanceId]) * " & "
+                instanceName = basename(instancesName[instanceId])
+                instanceName = replace(instanceName, "_" => "\\_")
+                latexRow *= instanceName * " & "
 
                 instanceResults = combinationResults.instancesResults[instancesName[instanceId]]
                 
@@ -166,7 +168,7 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
             end
         end
 
-        if length(combinationResults.clineColumns) == 2
+        if length(combinationResults.clineColumns) == 2 && !mustReprintHeader
             println(outputstream, "\\cline{" * string(combinationResults.clineColumns[1]) * "-" * string(combinationResults.clineColumns[2]) * "}")
         end 
     end
@@ -399,7 +401,7 @@ function documentHeader()
 \usepackage{amsmath}
 \usepackage{multicol}
 \usepackage{multirow}
-\usepackage[landscape]{geometry}
+\usepackage[landscape,a3paper]{geometry}
 
 \setlength{\hoffset}{-18pt}
 \setlength{\oddsidemargin}{0pt} % Marge gauche sur pages impaires
@@ -910,6 +912,8 @@ function computeTableValues(parameters::ExpeParameters, tableParameters::TablePa
     # For each combination
     for combination in combinationResults
 
+        @show combination
+
         # For each column
         columnId = 1 # Id of the column in InstanceResults.computedResults (i.e., 1 id per columns in the table)
         columnsId = 1 # Id of the column or the group in "columns" (i.e., 1 id per groups and ungrouped columns)
@@ -924,17 +928,27 @@ function computeTableValues(parameters::ExpeParameters, tableParameters::TablePa
 
         while !allColumnsConsidered
 
+            @show columnId
+
             # For each instance
             for (instanceName, instanceResults) in combination.instancesResults
+
+                @show instanceName, instanceResults
                 
                 # Compute the column values for this instance
                 computeInstanceValues(parameters, instanceResults, column)
 
                 # If the table displays one row for each instance 
                 if tableParameters.expandInstances
-                    meanValue, isNumerical = computeTableValue(parameters, instanceResults.computedResults[end], column)
-                    missingResultsForValue = hasMissingResults(column, instanceResults)
-                    push!(instanceResults.displayedValues, TableValue(meanValue, isNumerical, missingResultsForValue, tableParameters.maxNonScientificValue, column))
+
+                    if length(instanceResults.computedResults) == 0
+                        emptyValue = TableValue(nothing, false, false, 1, column)
+                        push!(instanceResults.displayedValues,  emptyValue)
+                    else
+                        meanValue, isNumerical = computeTableValue(parameters, instanceResults.computedResults[end], column)
+                        missingResultsForValue = hasMissingResults(column, instanceResults)
+                        push!(instanceResults.displayedValues, TableValue(meanValue, isNumerical, missingResultsForValue, tableParameters.maxNonScientificValue, column))
+                    end 
                 end 
             end
 
@@ -1287,8 +1301,10 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
     if tableParam.leftVline
         tableHeader *= "|"
     end 
-    
-    tableHeader *= "*{" * string(length(rowVariables)) * "}{r}"
+
+    if length(rowVariables) != 0
+        tableHeader *= "*{" * string(length(rowVariables)) * "}{r}"
+    end 
 
     if tableParam.expandInstances
         tableHeader *= "r"
