@@ -276,8 +276,23 @@ function getVariablesValues(rowVariables::Vector{RowVariable}, results::Vector{D
     end
     
     # Sort each array
-    for var in 1:length(rowVariables)
-        variablesValues[var] = sort(variablesValues[var])
+    for rvId in 1:length(rowVariables)
+        variablesValues[rvId] = sort(variablesValues[rvId])
+
+        # If the row variable only contains integer values, set its number of displayed digits to 0
+        isIntRowVariable = true
+        valueId = 1
+
+        while isIntRowVariable && valueId < length(variablesValues[rvId])
+            if typeof(numericalValue(variablesValues[rvId][valueId])) != Int
+                isIntRowVariable = false
+            end
+            valueId += 1
+        end
+
+        if isIntRowVariable
+            rowVariables[rvId].digits = 0
+        end 
     end
 
     return variablesValues
