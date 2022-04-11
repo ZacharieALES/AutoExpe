@@ -1,7 +1,7 @@
 name = "AutoExpe"
 uuid = "7514acc9-c05b-434e-9853-2d72b8bb89c2"
 authors = ["Zacharie Ales"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"

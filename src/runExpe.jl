@@ -176,11 +176,17 @@ function autoExpe(expeJsonPath::String)
                                 # Try to round numerical values
                                 roundedValue = string(round.(value, digits = 2))
 
+                                displayedValue = value
+                                
                                 # If the rounding remove decimals
                                 if length(roundedValue) < length(string(value))
-                                    println(roundedValue)
+                                    displayedValue = roundedValue
+                                end
+
+                                if typeof(displayedValue) <: Array && length(displayedValue) > 10
+                                    println("[", displayedValue[1], ", ", displayedValue[2], ", ..., ", displayedValue[end-1], ", ", displayedValue[end], "]")
                                 else
-                                    println(value)
+                                    println(displayedValue)
                                 end 
                             catch e
                                 # If the value cannot be rounded (i.e., if it contains non numerical values)
