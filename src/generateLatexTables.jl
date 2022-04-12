@@ -912,8 +912,6 @@ function computeTableValues(parameters::ExpeParameters, tableParameters::TablePa
     # For each combination
     for combination in combinationResults
 
-        @show combination
-
         # For each column
         columnId = 1 # Id of the column in InstanceResults.computedResults (i.e., 1 id per columns in the table)
         columnsId = 1 # Id of the column or the group in "columns" (i.e., 1 id per groups and ungrouped columns)
@@ -928,12 +926,8 @@ function computeTableValues(parameters::ExpeParameters, tableParameters::TablePa
 
         while !allColumnsConsidered
 
-            @show columnId
-
             # For each instance
             for (instanceName, instanceResults) in combination.instancesResults
-
-                @show instanceName, instanceResults
                 
                 # Compute the column values for this instance
                 computeInstanceValues(parameters, instanceResults, column)
