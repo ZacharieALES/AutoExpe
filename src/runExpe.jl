@@ -217,11 +217,12 @@ function autoExpe(expeJsonPath::String)
         end
     end
 
-    if parameters.latexFormatPath != nothing
+    if length(parameters.instancesPath) == 0
+        println("Warning: no instance found")
+    elseif parameters.latexFormatPath != nothing 
         println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , " Creating the latex table(s) in file ", parameters.latexOutputFile)
         createTexTables(parameters)
     end
-    
 end 
     
 function getNextCombinationId!(combinationId::Vector{Int}, parameters::Dict{String, Vector{Any}})

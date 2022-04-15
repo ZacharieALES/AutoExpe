@@ -52,7 +52,7 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
     # Get all the results
     # results[i] is one dictionary representing all information obtained from one resolution
     results = Vector{Dict{String, Any}}(getResults(parameters))
-    
+
     # tableCombinations[i]::CombinationResults: all results used to compute values in row(s) of combination n°i
     # (i.e., results which correspond to the combination of values of the row variables used in row n°i of the table)
     tableCombinations = splitResultsByCombination(parameters, tableParam, results, columns, rowVariables)
@@ -761,7 +761,7 @@ function getResults(parameters::ExpeParameters)
 
         instanceName = splitext(basename(instancePath))[1]
         outputFile = parameters.outputPath * "/" * instanceName * ".json"
-
+        
         # Get the results previously computed for this instance if any
         if isfile(outputFile)
             stringdata=join(readlines(outputFile))
@@ -943,8 +943,8 @@ function computeTableValues(parameters::ExpeParameters, tableParameters::TablePa
 
             # For each instance
             for (instanceName, instanceResults) in combination.instancesResults
-                
-                # Compute the column values for this instance
+
+                # Compute the column values for this instance and add them in instanceResults.computedResults
                 computeInstanceValues(parameters, instanceResults, column)
 
                 # If the table displays one row for each instance 
@@ -1146,83 +1146,82 @@ function computeInstanceValues(parameters::ExpeParameters, instanceResults::Inst
     instanceComputedResults = Vector{Any}()
 
     # If the first resolution method required to compute values in this column does not have any result
-    if !haskey(instanceResults.methodResults, vResolutionMethods[1])
-        return instanceComputedResults
-    end 
+    if haskey(instanceResults.methodResults, vResolutionMethods[1])
+        
+        # For each result obtained for this instance for the first resolution method
+        for methodResult in instanceResults.methodResults[vResolutionMethods[1]].results
 
-    # For each result obtained for this instance for the first resolution method
-    for methodResult in instanceResults.methodResults[vResolutionMethods[1]].results
+            ## Check if there is a result with the same value of parameters for all the other resolution methods required to compute the value in this column
 
-        ## Check if there is a result with the same value of parameters for all the other resolution methods required to compute the value in this column
+            # Dictionary of compatible results used to compute a value in the column
+            # methodResults[methodName][resultName]: value of the entry "resultName" for the method "methodName"
+            methodResults = Dict{String, Dict{String, Any}}()
+            methodResults[vResolutionMethods[1]] = methodResult
 
-        # Dictionary of compatible results used to compute a value in the column
-        # methodResults[methodName][resultName]: value of the entry "resultName" for the method "methodName"
-        methodResults = Dict{String, Dict{String, Any}}()
-        methodResults[vResolutionMethods[1]] = methodResult
+            methodId = 2
+            missingMethod = false
 
-        methodId = 2
-        missingMethod = false
+            # While all the methods have not been tested and no method result is missing yet
+            while methodId <= length( vResolutionMethods) && !missingMethod
 
-        # While all the methods have not been tested and no method result is missing yet
-        while methodId <= length( vResolutionMethods) && !missingMethod
+                currentMethodName = vResolutionMethods[methodId]
+                currentMethodResults = instanceResults.methodResults[currentMethodName]
 
-            currentMethodName = vResolutionMethods[methodId]
-            currentMethodResults = instanceResults.methodResults[currentMethodName]
+                resultFound = false
+                resultId = 1
+                
+                # While:
+                # - all the results of the current method have not been tested; and
+                # - a compatible result has not been found.
+                while resultId <= length(currentMethodResults.results) && !resultFound
 
-            resultFound = false
-            resultId = 1
-            
-            # While:
-            # - all the results of the current method have not been tested; and
-            # - a compatible result has not been found.
-            while resultId <= length(currentMethodResults.results) && !resultFound
+                    currentResult = Dict{String, Any}(currentMethodResults.results[resultId])
 
-                currentResult = Dict{String, Any}(currentMethodResults.results[resultId])
+                    # If this result corresponds to the same parameters than the result of the first method
+                    isResultValid = true
+                    parameterId = 1
 
-                # If this result corresponds to the same parameters than the result of the first method
-                isResultValid = true
-                parameterId = 1
+                    parametersNames = collect(keys(parameters.parametersToCombine))
 
-                parametersNames = collect(keys(parameters.parametersToCombine))
+                    while parameterId < length(parametersNames) && isResultValid
+                        parameterName  = parametersNames[parameterId]
 
-                while parameterId < length(parametersNames) && isResultValid
-                    parameterName  = parametersNames[parameterId]
-
-                    if !haskey(currentResult, parameterName)
-                        isResultValid = false
-                    else
-                        parameterValue = currentResult[parameterName]
-                        referenceValue = methodResult[parameterName]
-
-                        if parameterValue != referenceValue
+                        if !haskey(currentResult, parameterName)
                             isResultValid = false
-                        end 
-                    end 
+                        else
+                            parameterValue = currentResult[parameterName]
+                            referenceValue = methodResult[parameterName]
 
-                    parameterId += 1
+                            if parameterValue != referenceValue
+                                isResultValid = false
+                            end 
+                        end 
+
+                        parameterId += 1
+                    end
+
+                    if isResultValid
+                        resultFound = true
+                        methodResults[currentMethodName] = currentResult
+                    end 
+                    resultId += 1
                 end
 
-                if isResultValid
-                    resultFound = true
-                    methodResults[currentMethodName] = currentResult
+                if !resultFound
+                    missingMethod = true
                 end 
-                resultId += 1
+
+                methodId += 1
             end
+            
+            # If compatible results have been found for all the resolution methods required
+            if !missingMethod
 
-            if !resultFound
-                missingMethod = true
+                # Compute the corresponding values and add them to the instance results
+                append!(instanceComputedResults, computeValue(column, methodResults))
             end 
-
-            methodId += 1
-        end
-        
-        # If compatible results have been found for all the resolution methods required
-        if !missingMethod
-
-            # Compute the corresponding values and add them to the instance results
-            append!(instanceComputedResults, computeValue(column, methodResults))
-        end 
-    end # for methodResult in instanceResults.methodResults[vResolutionMethods[1]]
+        end # for methodResult in instanceResults.methodResults[vResolutionMethods[1]]
+    end 
 
     push!(instanceResults.computedResults, instanceComputedResults)
 
