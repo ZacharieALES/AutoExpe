@@ -98,40 +98,46 @@ function autoExpe(expeJsonPath::String)
 
                 # If unsolved results must be solved and if results already saved must not be recomputed, then test if this result is already solved
                 if parameters.computeUnsolvedResults
-                    if !parameters.recomputeSavedResults
 
-                        resultId = 1
-                        combinationFoundInResults = false
+                    resultId = 1
+                    combinationFoundInResults = false
 
-                        # While we have not tested that all the solved combinations are different from the one we want to compute
-                        while resultId <= length(instanceResults) && !combinationFoundInResults
+                    # While we have not tested that all the solved combinations are different from the one we want to compute
+                    while resultId <= length(instanceResults) && !combinationFoundInResults
 
-                            resultDict = instanceResults[resultId]
-                            
-                            # If the result corresponds to the current resolution method
-                            if resultDict["resolutionMethodName"] == currentMethodName
+                        resultDict = instanceResults[resultId]
+                        
+                        # If the result corresponds to the current resolution method
+                        if resultDict["resolutionMethodName"] == currentMethodName
 
-                                # Test all the parameters of the combination to see if they are equal to the parameter of the result
-                                combinationFoundInResults = true
-                                paramId = 1
-                                while paramId <= length(combinationKeys) && combinationFoundInResults
+                            # Test all the parameters of the combination to see if they are equal to the parameter of the result
+                            combinationFoundInResults = true
+                            paramId = 1
+                            while paramId <= length(combinationKeys) && combinationFoundInResults
 
-                                    # If any parameter does not correspond, the result is not a match
-                                    if !haskey(resultDict, combinationKeys[paramId]) || resultDict[combinationKeys[paramId]] != dictCombination[combinationKeys[paramId]]
-                                        combinationFoundInResults = false
-                                    end
-                                    paramId += 1
+                                # If any parameter does not correspond, the result is not a match
+                                if !haskey(resultDict, combinationKeys[paramId]) || resultDict[combinationKeys[paramId]] != dictCombination[combinationKeys[paramId]]
+                                    combinationFoundInResults = false
                                 end
+                                paramId += 1
                             end
+                        end
+                        if !combinationFoundInResults
                             resultId += 1
-                        end
+                        end 
+                    end
 
-                        if combinationFoundInResults
-                            methodLog *= "Skipped (already solved)" 
-                            savedResultsFound = true
-                        end
-                        mustSolve = !combinationFoundInResults 
-                    end 
+                    if combinationFoundInResults
+                        savedResultsFound = true
+
+                        # Remove the entry if the result must be recomputed
+                        if recomputeSavedResults
+                            deleteat!(instanceResults, resultId)
+                        else
+                            mustSolve = false
+                            methodLog *= "Skipped (already solved)"  
+                        end 
+                    end
                 else
                     methodLog *= "Skipped (not solving unsolved results)"
                 end
@@ -176,11 +182,17 @@ function autoExpe(expeJsonPath::String)
                                 # Try to round numerical values
                                 roundedValue = string(round.(value, digits = 2))
 
+                                displayedValue = value
+                                
                                 # If the rounding remove decimals
                                 if length(roundedValue) < length(string(value))
-                                    println(roundedValue)
+                                    displayedValue = roundedValue
+                                end
+
+                                if typeof(displayedValue) <: Array && length(displayedValue) > 10
+                                    println("[", displayedValue[1], ", ", displayedValue[2], ", ..., ", displayedValue[end-1], ", ", displayedValue[end], "]")
                                 else
-                                    println(value)
+                                    println(displayedValue)
                                 end 
                             catch e
                                 # If the value cannot be rounded (i.e., if it contains non numerical values)
