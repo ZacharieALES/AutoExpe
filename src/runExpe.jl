@@ -24,9 +24,16 @@ function autoExpe(expeJsonPath::String)
 
     for instancePath in parameters.instancesPath
 
+        while occursin("//", instancePath)
+            instancePath = replace(instancePath, "//" => "/")
+        end
+        
         instanceName = splitext(basename(instancePath))[1]
+        
         outputFile = parameters.outputPath * "/" * instanceName * ".json"
-        outputFile = replace(outputFile, "//" => "/")
+        while occursin("//", outputFile)
+            instanceName = replace(outputFile, "//" => "/")
+        end 
         
         # Variable which contains all the results of the instance
         # Each result is a Dict which contains:
@@ -131,7 +138,7 @@ function autoExpe(expeJsonPath::String)
                         savedResultsFound = true
 
                         # Remove the entry if the result must be recomputed
-                        if recomputeSavedResults
+                        if parameters.recomputeSavedResults
                             deleteat!(instanceResults, resultId)
                         else
                             mustSolve = false
