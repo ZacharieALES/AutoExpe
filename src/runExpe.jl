@@ -32,7 +32,7 @@ function autoExpe(expeJsonPath::String)
         
         outputFile = parameters.outputPath * "/" * instanceName * ".json"
         while occursin("//", outputFile)
-            instanceName = replace(outputFile, "//" => "/")
+            outputFile = replace(outputFile, "//" => "/")
         end 
         
         # Variable which contains all the results of the instance
