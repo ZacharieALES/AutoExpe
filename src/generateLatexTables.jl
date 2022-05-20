@@ -923,7 +923,7 @@ end
 Compute the value for each result column for each CombinationResults
 """
 function computeTableValues(parameters::ExpeParameters, tableParameters::TableParameters, combinationResults::Vector{CombinationResults}, columns::Vector{Any})
-    
+
     # For each combination
     for combination in combinationResults
 
@@ -944,6 +944,8 @@ function computeTableValues(parameters::ExpeParameters, tableParameters::TablePa
             # For each instance
             for (instanceName, instanceResults) in combination.instancesResults
 
+                instanceResults.instancePath = instanceName
+                
                 # Compute the column values for this instance and add them in instanceResults.computedResults
                 computeInstanceValues(parameters, instanceResults, column)
 
@@ -1044,69 +1046,83 @@ Input
 - methodResults: dictionary of results for the considered instance indexed by method name
   methodResults[methodName][resultName]: value of entry "resultName" in the result files for method "methodName"
 """
-function computeValue(column::Column, methodResults::Dict{String, Dict{String, Any}})
+function computeValue(column::Column, methodResults::Dict{String, Dict{String, Any}}, instancePath::String)
         
     # Values used to compute the value in the column
     values = Vector{Any}()
-
+    unavailableInformation = Vector{ValueInformation}([])
+    
     # For each information required to compute the value of the column
     for valInfo in column.valInfos
 
-        parameter = methodResults[valInfo.resolutionMethod][valInfo.key]
-
-        # Number of dimensions expected in the array
-        parameterDimension = length(size(valInfo.indexes))
-
-        value = parameter 
-
-        # If no dimensions are specified
-        if valInfo.indexes == []
-
-            # For each array dimension of the parameter, take the first value
-            for dimId in 1:parameterDimension
-                if isa(value, Array)
-                    value = selectdim(value, 1, 1)
-                end 
-            end
+        methodResult = methodResults[valInfo.resolutionMethod]
+        if !haskey(methodResult, valInfo.key)
+            push!(unavailableInformation, valInfo)
         else
-            indexesDimension = length(valInfo.indexes)
+            
+            parameter = methodResult[valInfo.key]
 
-            if indexesDimension != parameterDimension
-                print("Warning: ", indexesDimension, " dimensions are specified for parameter \"", valInfo.key, "\" used to compute the value of column \"", column.columnName, "\". However, this parameter contains ", parameterDimension, " dimensions.")
+            # Number of dimensions expected in the array
+            parameterDimension = length(size(valInfo.indexes))
 
-                if indexesDimension > parameterDimension
-                    println(" Ignoring the additional indexes.")
-                else
-                    println(" Index 1 is considered for the unspecified dimensions.")
+            value = parameter 
+
+            # If no dimensions are specified
+            if valInfo.indexes == []
+
+                # For each array dimension of the parameter, take the first value
+                for dimId in 1:parameterDimension
+                    if isa(value, Array)
+                        value = selectdim(value, 1, 1)
+                    end 
+                end
+            else
+                indexesDimension = length(valInfo.indexes)
+
+                if indexesDimension != parameterDimension
+                    print("Warning: ", indexesDimension, " dimensions are specified for parameter \"", valInfo.key, "\" used to compute the value of column \"", column.columnName, "\". However, this parameter contains ", parameterDimension, " dimensions.")
+
+                    if indexesDimension > parameterDimension
+                        println(" Ignoring the additional indexes.")
+                    else
+                        println(" Index 1 is considered for the unspecified dimensions.")
+                    end 
                 end 
-            end 
 
-            # Select the indexes for the minimum of both dimensions
-            for dimId in 1:min(indexesDimension, parameterDimension)
-                value = selectdim(value, 1, indexesDimension[dimId])
-            end
+                # Select the indexes for the minimum of both dimensions
+                for dimId in 1:min(indexesDimension, parameterDimension)
+                    value = selectdim(value, 1, indexesDimension[dimId])
+                end
 
-            # If the parameter dimension is greater, select index 1 for the next dimensions
-            for dimId in min(indexesDimension, parameterDimension)+1:parameterDimension
-                value = selectdim(value, 1, 1)
+                # If the parameter dimension is greater, select index 1 for the next dimensions
+                for dimId in min(indexesDimension, parameterDimension)+1:parameterDimension
+                    value = selectdim(value, 1, 1)
+                end
             end
-        end
-        
-        push!(values, value)
+            push!(values, value)  
+        end 
     end
 
     computedValue = nothing
 
-    if column.computeValue != emptyFunction
-        computedValue = column.computeValue(values)
-    elseif length(values) == 0
-        println("Warning: no value obtained for a cell in column ", uniqueColumnName(column), ".")
+    if length(unavailableInformation) > 0
+        print("Warning: missing entries to compute the value of column ", uniqueColumnName(column), "\n\tList of the ", length(unavailableInformation), " missing entries:")
+        for valInfo in unavailableInformation
+            print("\"", valInfo.key, "\" for method \"", valInfo.resolutionMethod, "\", ")
+        end
+        println("\n\tList of the available results: ", methodResults, "\n\tInstance Path: ", instancePath)
     else
-        computedValue = values[1]
-        if length(values) > 1
-            println("Warning: more than one values obtained for a cell in column ", uniqueColumnName(column), ": ", values, ". Only keeping the first one")
-        end 
-    end
+        if column.computeValue != emptyFunction
+            computedValue = column.computeValue(values)
+        elseif length(values) == 0
+            println("Warning: no value obtained for a cell in column ", uniqueColumnName(column), ".")
+        else
+            computedValue = values[1]
+            if length(values) > 1
+                println("Warning: more than one values obtained for a cell in column ", uniqueColumnName(column), ": ", values, ". Only keeping the first one")
+            end 
+        end
+    end 
 
     return computedValue
 end 
@@ -1218,7 +1234,11 @@ function computeInstanceValues(parameters::ExpeParameters, instanceResults::Inst
             if !missingMethod
 
                 # Compute the corresponding values and add them to the instance results
-                append!(instanceComputedResults, computeValue(column, methodResults))
+                value = computeValue(column, methodResults, instanceResults.instancePath)
+
+                if value != nothing
+                    append!(instanceComputedResults, value)
+                end
             end 
         end # for methodResult in instanceResults.methodResults[vResolutionMethods[1]]
     end 
