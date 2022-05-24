@@ -95,6 +95,11 @@ function autoExpe(expeJsonPath::String)
             # For each method
             for methodId in 1:length(parameters.resolutionMethods)
 
+                # Reinitialise the combination
+                # (otherwise if a parameter p is specified for a method A and not for a method B, then method B would still have this parameter specified)
+                dictCombination = getCombination(combinationId, parameters.parametersToCombine) 
+                dictCombination["instancePath"] = instancePath 
+
                 currentMethodName = string(nameof(parameters.resolutionMethods[methodId]))
 
                 methodLog = string(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS")) * "\t\t Resolution method \"" * currentMethodName * "\" (" * string(floor(Int, 100 * resolutionId / resolutionCount)) * "%)... "
