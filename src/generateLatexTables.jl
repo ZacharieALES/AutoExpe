@@ -182,7 +182,7 @@ end
 
 
 function getTableFooter(caption::String; hasMissingValues::Bool=false)
-    tableFooter = raw"""\hline\end{array}$
+    tableFooter = raw"""\hline\end{array}$}
     \end{center}
     \caption{""" * caption
 
@@ -416,6 +416,7 @@ function documentHeader()
 \usepackage{amsmath}
 \usepackage{multicol}
 \usepackage{multirow}
+\usepackage{graphicx}
 \usepackage[landscape,a3paper]{geometry}
 
 \setlength{\hoffset}{-18pt}
@@ -1324,7 +1325,7 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
     tableHeader = raw"""
     \begin{table}[h!]
     \begin{center}
-    $\begin{array}{"""
+    \resizebox{\textwidth}{!}{$\begin{array}{"""
 
     if tableParam.leftVline
         tableHeader *= "|"
