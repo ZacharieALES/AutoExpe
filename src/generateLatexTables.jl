@@ -210,7 +210,8 @@ function uniqueColumnName(col::Column)
         result *= String(Symbol(col.computeValue)) * "("
     end 
 
-    for val in col.valInfos
+    for valId in 1:length(col.valInfos)
+        val = col.valInfos[valId]
         result *= val.key
 
         if length(val.indexes) > 0
@@ -225,7 +226,11 @@ function uniqueColumnName(col::Column)
             result *= "]"
         end
 
-        result *= " from " * val.resolutionMethod
+        result *= " from method " * val.resolutionMethod
+
+        if valId != length(col.valInfos)
+            result *= ", "
+        end 
     end
     
     if col.computeValue != emptyFunction
@@ -1107,7 +1112,7 @@ function computeValue(column::Column, methodResults::Dict{String, Dict{String, A
     computedValue = nothing
 
     if length(unavailableInformation) > 0
-        print("Warning: missing entries to compute the value of column ", uniqueColumnName(column), "\n\tList of the ", length(unavailableInformation), " missing entries:")
+        print("Warning: missing entries to compute the value of the column named \"", uniqueColumnName(column), "\"\n\tList of the ", length(unavailableInformation), " missing entries:")
         for valInfo in unavailableInformation
             print("\"", valInfo.key, "\" for method \"", valInfo.resolutionMethod, "\", ")
         end
