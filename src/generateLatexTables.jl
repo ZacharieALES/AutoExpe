@@ -1069,7 +1069,7 @@ function computeValue(column::Column, methodResults::Dict{String, Dict{String, A
             parameter = methodResult[valInfo.key]
 
             # Number of dimensions expected in the array
-            parameterDimension = length(size(valInfo.indexes))
+            parameterDimension = length(valInfo.indexes)
 
             value = parameter 
 

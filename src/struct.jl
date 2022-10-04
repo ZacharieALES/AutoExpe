@@ -288,10 +288,10 @@ function Column(valInfos::Vector{ValueInformation}; columnName::String="", vline
             this.columnName = String(nameof(computeValue)) * "("
         end
 
-        for viId in 1:size(valInfos, 1)
+        for viId in 1:length(valInfos)
             this.columnName *= string(valInfos[viId])
 
-            if viId < size(valInfos, 1)
+            if viId < length(valInfos)
                 this.columnName *= ", "
             end 
         end 
@@ -537,16 +537,16 @@ function InstanceResults(parameters::ExpeParameters, instancePath::String, insta
         end
 
         # If results are found
-        if size(methodResults, 1) > 0
+        if length(methodResults) > 0
             this.methodResults[resolutionMethodName] = MethodResults(resolutionMethodName, methodResults)
-            if size(methodResults, 1) > maximalNumberOfResults
-                maximalNumberOfResults = size(methodResults, 1)
+            if length(methodResults) > maximalNumberOfResults
+                maximalNumberOfResults = length(methodResults)
             end 
         end
     end 
 
     for (methodName, methodResults) in this.methodResults
-        methodResults.hasAllResults = size(methodResults.results, 1) == maximalNumberOfResults
+        methodResults.hasAllResults = length(methodResults.results) == maximalNumberOfResults
     end
     
     return this
@@ -607,7 +607,7 @@ function CombinationResults(parameters::ExpeParameters, combination::Vector{Any}
         end
 
         # If results are found
-        if size(instanceResults, 1) > 0
+        if length(instanceResults) > 0
             this.instancesResults[instancePath] = InstanceResults(parameters, instancePath, instanceResults)
         end
     end
