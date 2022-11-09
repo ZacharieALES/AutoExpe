@@ -182,7 +182,7 @@ end
 
 
 function getTableFooter(caption::String; hasMissingValues::Bool=false)
-    tableFooter = raw"""\hline\end{array}$
+    tableFooter = raw"""\hline\end{array}$}
     \end{center}
     \caption{""" * caption
 
@@ -421,6 +421,7 @@ function documentHeader()
 \usepackage{amsmath}
 \usepackage{multicol}
 \usepackage{multirow}
+\usepackage{graphicx}
 \usepackage[landscape,a3paper]{geometry}
 
 \setlength{\hoffset}{-18pt}
@@ -1068,7 +1069,7 @@ function computeValue(column::Column, methodResults::Dict{String, Dict{String, A
             parameter = methodResult[valInfo.key]
 
             # Number of dimensions expected in the array
-            parameterDimension = length(size(valInfo.indexes))
+            parameterDimension = length(valInfo.indexes)
 
             value = parameter 
 
@@ -1329,7 +1330,7 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
     tableHeader = raw"""
     \begin{table}[h!]
     \begin{center}
-    $\begin{array}{"""
+    \resizebox{\textwidth}{!}{$\begin{array}{"""
 
     if tableParam.leftVline
         tableHeader *= "|"
