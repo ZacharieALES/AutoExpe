@@ -422,20 +422,7 @@ function documentHeader()
 \usepackage{multicol}
 \usepackage{multirow}
 \usepackage{graphicx}
-\usepackage[landscape,a3paper]{geometry}
-
-\setlength{\hoffset}{-18pt}
-\setlength{\oddsidemargin}{0pt} % Marge gauche sur pages impaires
-\setlength{\evensidemargin}{9pt} % Marge gauche sur pages paires
-\setlength{\marginparwidth}{54pt} % Largeur de note dans la marge
-\setlength{\textwidth}{520pt} % Largeur de la zone de texte (17cm)
-\setlength{\voffset}{-18pt} % Bon pour DOS
-\setlength{\marginparsep}{7pt} % Séparation de la marge
-\setlength{\topmargin}{0pt} % Pas de marge en haut
-\setlength{\headheight}{5pt} % Haut de page
-\setlength{\headsep}{5pt} % Entre le haut de page et le texte
-\setlength{\footskip}{27pt} % Bas de page + séparation
-\setlength{\textheight}{550pt} % Hauteur de la zone de texte (25cm)
+\usepackage[landscape,a3paper, total={40cm, 28cm}]{geometry}
 
 \begin{document}
 \renewcommand{\arraystretch}{1.4}
