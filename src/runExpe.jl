@@ -22,6 +22,8 @@ function autoExpe(expeJsonPath::String)
         mkpath(parameters.outputPath)
     end
 
+    resolutionErrorsCount = 0
+
     for instancePath in parameters.instancesPath
 
         while occursin("//", instancePath)
@@ -168,8 +170,7 @@ function autoExpe(expeJsonPath::String)
                         try
                             createTexTables(parameters)
                         catch e
-                            println("Warning: Error while producing the latex table.")
-                            println(e)
+                            @error "Warning: Error while producing the latex table." exception=(e, catch_backtrace())
                         end 
                             
                         nextCompilationTime = Dates.now() + Dates.Minute(parameters.minLatexCompilationInterval)
@@ -220,7 +221,8 @@ function autoExpe(expeJsonPath::String)
                             end 
                         end
                     catch e
-                        println(e)
+                        @error "Warning: Error while solving an instance." exception=(e, catch_backtrace())
+                        resolutionErrorsCount += 1
                     end 
 
                     # and save them
@@ -248,10 +250,13 @@ function autoExpe(expeJsonPath::String)
         try
             createTexTables(parameters)
         catch e
-            println("Warning: Error while producing the latex table.")
-            println(e)
+            @error "Warning: Error while producing the latex table." exception=(e, catch_backtrace()) 
         end 
     end
+
+    if resolutionErrorsCount > 0
+        println("Warning: ", resolutionErrorsCount, " resolutions triggered an error.")
+    end 
 end 
     
 function getNextCombinationId!(combinationId::Vector{Int}, parameters::Dict{String, Vector{Any}})
