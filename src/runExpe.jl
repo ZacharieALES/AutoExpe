@@ -158,14 +158,20 @@ function autoExpe(expeJsonPath::String)
                 if mustSolve
 
                     # Create the latex result table if:
-                    # 1    - a latex format is specified; and either
+                    # 1    - a latex format is specified; and
                     # 2.1  - the next compilation time is reached; or
                     # 2.2 (- no latex table has yet been created; and
                     #      - results have been obtained in previous run(s))
                     # Note: Condition 2.2 enables the user to see all the results of previous runs immediatly after starting the experiment
                     if parameters.latexFormatPath != [] && (Dates.now()  > nextCompilationTime  || (!isFirstLatexCompiled &&  savedResultsFound))
                         println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , "\t\t Creating the latex table(s) in file ", parameters.latexOutputFile)
-                        createTexTables(parameters)
+                        try
+                            createTexTables(parameters)
+                        catch e
+                            println("Warning: Error while producing the latex table.")
+                            println(e)
+                        end 
+                            
                         nextCompilationTime = Dates.now() + Dates.Minute(parameters.minLatexCompilationInterval)
                         isFirstLatexCompiled = true
                     end
@@ -174,44 +180,48 @@ function autoExpe(expeJsonPath::String)
 
                     # Solve it
                     startingTime = time()
-                    dictResults = parameters.resolutionMethods[methodId](dictCombination)
-                    resolutionTime = time() - startingTime
+                    try
+                        dictResults = parameters.resolutionMethods[methodId](dictCombination)
+                        resolutionTime = time() - startingTime
 
-                    dictResults["auto_expe_resolution_time"] = resolutionTime
+                        dictResults["auto_expe_resolution_time"] = resolutionTime
 
-                    # The results saved both contain the experiment results and the combination of parameters considered
-                    outputResult = merge(dictCombination, dictResults)
-                    outputResult["resolutionMethodName"] = currentMethodName
-                    push!(instanceResults, outputResult)
+                        # The results saved both contain the experiment results and the combination of parameters considered
+                        outputResult = merge(dictCombination, dictResults)
+                        outputResult["resolutionMethodName"] = currentMethodName
+                        push!(instanceResults, outputResult)
 
-                    # Display the results
-                    if parameters.verbosity != :None
-                        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t Results: ")
-                        for (key, value) in dictResults
-                            print(" "^22, "\t\t\t", key, " = ")
+                        # Display the results
+                        if parameters.verbosity != :None
+                            println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t Results: ")
+                            for (key, value) in dictResults
+                                print(" "^22, "\t\t\t", key, " = ")
 
-                            try
-                                # Try to round numerical values
-                                roundedValue = string(round.(value, digits = 2))
+                                try
+                                    # Try to round numerical values
+                                    roundedValue = string(round.(value, digits = 2))
 
-                                displayedValue = value
-                                
-                                # If the rounding remove decimals
-                                if length(roundedValue) < length(string(value))
-                                    displayedValue = roundedValue
-                                end
+                                    displayedValue = value
+                                    
+                                    # If the rounding remove decimals
+                                    if length(roundedValue) < length(string(value))
+                                        displayedValue = roundedValue
+                                    end
 
-                                if typeof(displayedValue) <: Array && length(displayedValue) > 10
-                                    println("[", displayedValue[1], ", ", displayedValue[2], ", ..., ", displayedValue[end-1], ", ", displayedValue[end], "]")
-                                else
-                                    println(displayedValue)
+                                    if typeof(displayedValue) <: Array && length(displayedValue) > 10
+                                        println("[", displayedValue[1], ", ", displayedValue[2], ", ..., ", displayedValue[end-1], ", ", displayedValue[end], "]")
+                                    else
+                                        println(displayedValue)
+                                    end 
+                                catch e
+                                    # If the value cannot be rounded (i.e., if it contains non numerical values)
+                                    println(value)
                                 end 
-                            catch e
-                                # If the value cannot be rounded (i.e., if it contains non numerical values)
-                                println(value)
                             end 
-                        end 
-                    end
+                        end
+                    catch e
+                        println(e)
+                    end 
 
                     # and save them
                     open(outputFile, "w") do fout
@@ -231,9 +241,16 @@ function autoExpe(expeJsonPath::String)
 
     if length(parameters.instancesPath) == 0
         println("Warning: no instance found")
-    elseif parameters.latexFormatPath != nothing 
+    elseif parameters.latexFormatPath != nothing
+        
         println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS") , " Creating the latex table(s) in file ", parameters.latexOutputFile)
-        createTexTables(parameters)
+        
+        try
+            createTexTables(parameters)
+        catch e
+            println("Warning: Error while producing the latex table.")
+            println(e)
+        end 
     end
 end 
     

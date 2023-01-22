@@ -15,10 +15,15 @@ function createTexTables(parameters::ExpeParameters; compileTexFile::Bool=true)
     tableConstructed = false
 
     for tableStructure in parameters.latexFormatPath
-        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t\t Creating table from ", tableStructure) 
-        isValid = createTexTable(parameters, tableStructure, outputstream)
-        if isValid
-            tableConstructed = true
+        println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t\t Creating table from ", tableStructure)
+
+        if isfile(tableStructure)
+            isValid = createTexTable(parameters, tableStructure, outputstream)
+            if isValid
+                tableConstructed = true
+            end
+        else
+            println("Warning: the table ", tableStructure, " does not exist.")
         end 
     end
 
