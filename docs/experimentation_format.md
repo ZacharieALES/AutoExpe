@@ -74,9 +74,25 @@ Path of the instance files. This entry can contain:
          "instancePath": {"name": "./data", "isRecursive": true}
 
 
-The reference directory for relative paths is the directory in which julia is executed.
+The reference directory  for relative paths is the  directory in which
+julia is executed.
 
-### latexFormatPath (optional)
+### parametersToCombine (optional)
+
+List of all parameters (if any) and their value(s). Each algorithm will be applied
+to each instance for all possible combinations of the parameters. 
+
+Examples:
+
+    # The parameters combinations (m, K) of the first example are:
+    # (1, 10), (1, 20), (1, 30), (2, 10), (2, 20), (2, 30), (3, 10),
+    # (3, 20), and (3, 30)
+    "parametersToCombine": {"m": [1, 2, 3], "K": [10, 20, 30}]
+    "parametersToCombine": {"knapsackCount": [1, 2, 3]}
+	
+	
+
+### latexOutputFile (optional)
 
 Path of the [latex format file(s)](./latex_table_format.md). An array can be used if several latex tables are generated.
 
