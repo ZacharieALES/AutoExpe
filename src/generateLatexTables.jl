@@ -183,63 +183,55 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
         println(outputstream, tableHeader)
     end
 
+    print(outputstream, "&"^(length(rowVariables)-1))
+
+    if tableParam.expandInstances
+        print(outputstream, "&")
+    end
+    println(outputstream,  " \\textbf{Total} & ")
+    
     # For each column
     allColumnsConsidered = false
     colId = 1
+    columnsSum = Vector{Float64}([])
+    columnsHaveNumericalValues = Vector{Bool}([])
     
-    while !allColumnsConsidered
+    for combinationId in 1:length(tableCombinations) # For each result row
 
-        allColumnsConsidered = true
-        isColumnNumerical = true
-        columnSumOfResults = 0
-        
-        for instanceResults in combinationResults.instanceResults
+        combinationResults = tableCombinations[combinationId]
 
-            if isColumnNumerical && length(instanceResults.computedResults) >= colId
-                allColumnsConsidered = false
+        for (path, instanceResults) in combinationResults.instancesResults # For each instance
 
-                # TODO: detect if values are non-numerical (empty can either mean no value or no)
-                # and fix variable isColumnNumerical to false if necessary
-                numValues = numericalVector(instanceResults.computedResults[colId]})
-                columnSumOfResults += sum(numValues)
-                
-            end 
-        end # for instanceResults in combinationResults.instanceResults
+            for (colId, colResults) in enumerate(instanceResults.computedResults) # For each column
 
-        colId += 1
-    end  # while !allColumnsConsidered        
-        
-#=    for column in columns
-        if typeof(column) == ColumnGroup
-            
-            
-            # For each instance
-            for instanceId in 1:length(instancesName)
+                numValues = numericalVector(colResults)
 
-                latexRow = ""
-                if mustReprintHeader
-                    latexRow *= latexAllRowVariables
-                elseif instanceId == 1
-                    latexRow *= latexModifiedRowVariables
-                else
-                    latexRow *= "&"^length(rowVariables)
+                if length(columnsSum) < colId
+                    append!(columnsSum, zeros(colId - length(columnsSum)))
+                    append!(columnsHaveNumericalValues, zeros(colId - length(columnsHaveNumericalValues)))
                 end
 
-                # TODO: remove extension according to tableParam.hideInstancesExtension
-                instanceName = basename(instancesName[instanceId])
-                instanceName = replace(instanceName, "_" => "\\_")
-                latexRow *= instanceName * " & "
+                if length(numValues) > 0
+                    columnsSum[colId] += sum(numValues) 
+                    columnsHaveNumericalValues[colId] = true
+                end 
+            end # for each column
+        end # for each instance
+    end # for each result row
 
-                instanceResults = combinationResults.instancesResults[instancesName[instanceId]]
-                
-                rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(instanceResults.displayedValues, mustReprintHeader, outputstream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam, containColumnGroups) 
-
-    end =#
-
-    # If the last table is not closed
-    if !mustReprintHeader
-        println(outputstream,  getTableFooter(tableParam.caption, hasMissingValues=tableHasMissingValues))
+    for (colId, colSum) in enumerate(columnsSum)
+        if columnsHaveNumericalValues[colId]
+            if round(Int, colSum) != colSum && colSum < 10
+                print(outputstream, round(colSum, digits=2))
+            else 
+                print(outputstream, round(Int, colSum))
+            end 
+        end 
+        print(outputstream, " & ") 
     end 
+
+    println(outputstream, "\\\\\n",  getTableFooter(tableParam.caption, hasMissingValues=tableHasMissingValues))
+    
     return true
 end
 
@@ -858,6 +850,7 @@ function splitResultsByCombination(parameters::ExpeParameters, tableParam::Table
     rowValues = getVariablesValues(rowVariables, results, parameters)
 
     for rowVariableId in length(rowVariables):-1:1
+        
         if length(rowValues[rowVariableId]) == 0
             println("Warning: No value found for variable ", rowVariables[rowVariableId].valInfo.key, ". This variable is ignored.")
             deleteat!(rowVariables, rowVariableId)
@@ -1217,7 +1210,7 @@ function computeInstanceValues(parameters::ExpeParameters, instanceResults::Inst
     # Represents all the values computed for this instance
     instanceComputedResults = Vector{Any}()
 
-    # If we obtained results for the first resolution method required to compute values in this column
+    # If the first resolution method required to compute values in this column does not have any result
     if haskey(instanceResults.methodResults, vResolutionMethods[1])
         
         # For each result obtained for this instance for the first resolution method
