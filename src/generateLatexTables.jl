@@ -178,6 +178,64 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
         end 
     end
 
+    ## Print the sum of the numerical columns
+    if mustReprintHeader
+        println(outputstream, tableHeader)
+    end
+
+    # For each column
+    allColumnsConsidered = false
+    colId = 1
+    
+    while !allColumnsConsidered
+
+        allColumnsConsidered = true
+        isColumnNumerical = true
+        columnSumOfResults = 0
+        
+        for instanceResults in combinationResults.instanceResults
+
+            if isColumnNumerical && length(instanceResults.computedResults) >= colId
+                allColumnsConsidered = false
+
+                # TODO: detect if values are non-numerical (empty can either mean no value or no)
+                # and fix variable isColumnNumerical to false if necessary
+                numValues = numericalVector(instanceResults.computedResults[colId]})
+                columnSumOfResults += sum(numValues)
+                
+            end 
+        end # for instanceResults in combinationResults.instanceResults
+
+        colId += 1
+    end  # while !allColumnsConsidered        
+        
+#=    for column in columns
+        if typeof(column) == ColumnGroup
+            
+            
+            # For each instance
+            for instanceId in 1:length(instancesName)
+
+                latexRow = ""
+                if mustReprintHeader
+                    latexRow *= latexAllRowVariables
+                elseif instanceId == 1
+                    latexRow *= latexModifiedRowVariables
+                else
+                    latexRow *= "&"^length(rowVariables)
+                end
+
+                # TODO: remove extension according to tableParam.hideInstancesExtension
+                instanceName = basename(instancesName[instanceId])
+                instanceName = replace(instanceName, "_" => "\\_")
+                latexRow *= instanceName * " & "
+
+                instanceResults = combinationResults.instancesResults[instancesName[instanceId]]
+                
+                rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(instanceResults.displayedValues, mustReprintHeader, outputstream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam, containColumnGroups) 
+
+    end =#
+
     # If the last table is not closed
     if !mustReprintHeader
         println(outputstream,  getTableFooter(tableParam.caption, hasMissingValues=tableHasMissingValues))
@@ -921,7 +979,7 @@ end
 Compute the value for each result column for each CombinationResults
 """
 function computeTableValues(parameters::ExpeParameters, tableParameters::TableParameters, combinationResults::Vector{CombinationResults}, columns::Vector{Any})
-
+    
     # For each combination
     for combination in combinationResults
 
@@ -1159,7 +1217,7 @@ function computeInstanceValues(parameters::ExpeParameters, instanceResults::Inst
     # Represents all the values computed for this instance
     instanceComputedResults = Vector{Any}()
 
-    # If the first resolution method required to compute values in this column does not have any result
+    # If we obtained results for the first resolution method required to compute values in this column
     if haskey(instanceResults.methodResults, vResolutionMethods[1])
         
         # For each result obtained for this instance for the first resolution method
@@ -1176,7 +1234,7 @@ function computeInstanceValues(parameters::ExpeParameters, instanceResults::Inst
             missingMethod = false
 
             # While all the methods have not been tested and no method result is missing yet
-            while methodId <= length( vResolutionMethods) && !missingMethod
+            while methodId <= length(vResolutionMethods) && !missingMethod
 
                 currentMethodName = vResolutionMethods[methodId]
                 currentMethodResults = instanceResults.methodResults[currentMethodName]
