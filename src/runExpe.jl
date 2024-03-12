@@ -185,7 +185,7 @@ function autoExpe(expeJsonPath::String)
                         dictResults = parameters.resolutionMethods[methodId](dictCombination)
                         resolutionTime = time() - startingTime
 
-                        if !typeof(dictResults) != Dict{String, Any}
+                        if !(typeof(dictResults) != Dict{String, Any})
                             dictResults["auto_expe_resolution_time"] = resolutionTime
 
                             # The results saved both contain the experiment results and the combination of parameters considered
