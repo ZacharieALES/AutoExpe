@@ -524,9 +524,17 @@ function InstanceResults(parameters::ExpeParameters, instancePath::String, insta
 
     maximalNumberOfResults = -1
 
+    # List of all resolution methods (the ones in experiment configuration file and the ones in the result files)
+    allResolutionMethods = Vector{String}(string.(nameof.(parameters.resolutionMethods)))
+
+    for result in instanceResults
+        if !(result["resolutionMethodName"] in allResolutionMethods)
+             push!(allResolutionMethods, result["resolutionMethodName"])
+        end 
+    end   
+
     # For each resolution method
-    for resolutionMethod in parameters.resolutionMethods
-        resolutionMethodName = string(nameof(resolutionMethod))
+    for resolutionMethodName in allResolutionMethods
 
         # Get all its results
         methodResults = Vector{Dict{String, Any}}()
@@ -601,6 +609,7 @@ function CombinationResults(parameters::ExpeParameters, combination::Vector{Any}
         # Get all its results
         instanceResults = Vector{Dict{String, Any}}()
         for result in combinationResults
+            
             if result["auto_expe_instance_path"] == instancePath
                 push!(instanceResults, result)
             end 

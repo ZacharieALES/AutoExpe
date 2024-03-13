@@ -238,15 +238,14 @@ end
 
 function getTableFooter(caption::String; hasMissingValues::Bool=false)
     tableFooter = raw"""\hline\end{array}$}
-    \end{center}
-    \caption{""" * caption
+
+    """ * caption * "\n"
 
     if hasMissingValues
         tableFooter *= raw""" The symbol $\dag$ indicates an average value   computed from an incomplete set of results compared to other values on the same line."""
     end 
 
-    tableFooter *= raw"""}
-    \end{table}
+    tableFooter *= raw"""\end{center}
     \newpage
 
     """
@@ -808,6 +807,7 @@ function getResults(parameters::ExpeParameters)
     for instancePath in parameters.instancesPath
 
         instanceName = splitext(basename(instancePath))[1]
+        
         outputFile = parameters.outputPath * "/" * instanceName * ".json"
         
         # Get the results previously computed for this instance if any
@@ -910,12 +910,11 @@ function splitResultsByCombination(parameters::ExpeParameters, tableParam::Table
                 push!(combinationResults, result)
             end
         end
-
         parametersValues = Vector{Any}()
 
         for i in 1:length(combinationIds)
             push!(parametersValues, rowValues[i][combinationIds[i]])
-        end 
+        end
          
        push!(tableCombinations, CombinationResults(parameters, parametersValues, combinationResults))
 
@@ -1200,13 +1199,13 @@ function computeInstanceValues(parameters::ExpeParameters, instanceResults::Inst
 
     # Get all the resolution methods required to compute the value in column "column"
     vResolutionMethods = Vector{String}()
-    
+
     for val in column.valInfos
         if !(val.resolutionMethod in vResolutionMethods)
             push!(vResolutionMethods, val.resolutionMethod)
         end 
     end
-    
+
     # Represents all the values computed for this instance
     instanceComputedResults = Vector{Any}()
 
@@ -1371,7 +1370,6 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
     
     # Create the table header
     tableHeader = raw"""
-    \begin{table}[h!]
     \begin{center}
     \resizebox{\textwidth}{!}{$\begin{array}{"""
 
