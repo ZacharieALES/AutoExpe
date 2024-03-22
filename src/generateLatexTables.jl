@@ -188,12 +188,12 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
     if tableParam.expandInstances
         print(outputstream, "&")
     end
-    println(outputstream,  " \\textbf{Total} & ")
     
     # For each column
     allColumnsConsidered = false
     colId = 1
     columnsSum = Vector{Float64}([])
+    columnsCount = Vector{Float64}([])
     columnsHaveNumericalValues = Vector{Bool}([])
     
     for combinationId in 1:length(tableCombinations) # For each result row
@@ -208,23 +208,41 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
 
                 if length(columnsSum) < colId
                     append!(columnsSum, zeros(colId - length(columnsSum)))
+                    append!(columnsCount, zeros(colId - length(columnsCount)))
                     append!(columnsHaveNumericalValues, zeros(colId - length(columnsHaveNumericalValues)))
                 end
 
                 if length(numValues) > 0
                     columnsSum[colId] += sum(numValues) 
+                    columnsCount[colId] += 1
                     columnsHaveNumericalValues[colId] = true
                 end 
             end # for each column
         end # for each instance
     end # for each result row
 
+    println(outputstream,  " \\textbf{Total} & ")
     for (colId, colSum) in enumerate(columnsSum)
         if columnsHaveNumericalValues[colId]
-            if round(Int, colSum) != colSum && colSum < 10
+            if round(Int, colSum) != colSum && abs(colSum) < 10
                 print(outputstream, round(colSum, digits=2))
             else 
                 print(outputstream, round(Int, colSum))
+            end 
+        end 
+        print(outputstream, " & ") 
+    end
+
+    println(outputstream, "\\\\\n")
+    
+    println(outputstream,  " \\textbf{Average} & ")
+    for (colId, colCount) in enumerate(columnsCount)
+        if columnsHaveNumericalValues[colId]
+            averageValue = columnsSum[colId] / Float64(colCount)
+            if round(Int, averageValue) != averageValue && abs(averageValue) < 10
+                print(outputstream, round(averageValue, digits=2))
+            else 
+                print(outputstream, round(Int, averageValue))
             end 
         end 
         print(outputstream, " & ") 
@@ -806,8 +824,7 @@ function getResults(parameters::ExpeParameters)
     
     for instancePath in parameters.instancesPath
 
-        instanceName = splitext(basename(instancePath))[1]
-        
+        instanceName = splitext(basename(instancePath))[1]   
         outputFile = parameters.outputPath * "/" * instanceName * ".json"
         
         # Get the results previously computed for this instance if any
@@ -910,6 +927,7 @@ function splitResultsByCombination(parameters::ExpeParameters, tableParam::Table
                 push!(combinationResults, result)
             end
         end
+
         parametersValues = Vector{Any}()
 
         for i in 1:length(combinationIds)

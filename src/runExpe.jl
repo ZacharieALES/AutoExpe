@@ -227,6 +227,7 @@ function autoExpe(expeJsonPath::String)
                     catch e
                         @error "Warning: Error while solving an instance." exception=(e, catch_backtrace())
                         resolutionErrorsCount += 1
+                        readline()
                     end 
 
                     # and save them
