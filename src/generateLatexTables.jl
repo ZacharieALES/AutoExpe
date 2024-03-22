@@ -235,7 +235,7 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
 
     println(outputstream, "\\\\\n")
     
-    println(outputstream,  " \\textbf{Average} & ")
+    println(outputstream,  " & \\textbf{Average} & ")
     for (colId, colCount) in enumerate(columnsCount)
         if columnsHaveNumericalValues[colId]
             averageValue = columnsSum[colId] / Float64(colCount)
