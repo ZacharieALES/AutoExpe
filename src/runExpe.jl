@@ -634,21 +634,18 @@ function readExpeFormat(jsonFilePath::String)
     return parameters
 end
 
-function addValuesToResults(expeJsonPath::String, addingFunctionJsonPath::String)
+
+"""
+For each instance result file f obtained in an experiment, apply a function that deduce from the path of the corresponding  instance additional results to add to all results in file f.
+
+Input:
+- expeJsonPath: the path of the experiment configuration file
+- addingFunction: the function applied to each instance path to deduce additional results to add to all results associated to this instance. It must take as an input a String and returns a Dict{String, Any}.
+"""
+function addValuesToResults(expeJsonPath::String, addingFunction::Function)
 
     # Read the experiment parameters in order to find the instances path
     parameters = readExpeFormat(expeJsonPath)
-
-    # Get the function which get the additional result entries
-    stringdata=join(readlines(addingFunctionJsonPath))
-    functionDict = JSON.parse(stringdata)
-    addingFunction = getMethods(functionDict)
-
-    if length(addingFunction) != 1
-        println("Warning: when adding entries in existing saved results, the json file must only contain one dictionary with an entry \"name\" and optionally an entry \"module\". However, ", length(addingFunction), " valid functions have been found from file ", addingFunctionJsonPath, ".")
-    end
-    
-    addingFunction = addingFunction[1] 
     
     for instancePath in parameters.instancesPath
 
