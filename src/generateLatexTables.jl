@@ -354,18 +354,37 @@ function getVariablesValues(rowVariables::Vector{RowVariable}, results::Vector{D
     
     # Sort each array
     for rvId in 1:length(rowVariables)
-        variablesValues[rvId] = sort(variablesValues[rvId])
 
         # If the row variable only contains integer values, set its number of displayed digits to 0
         isIntRowVariable = true
+
+        # If the variables are numerical, replace their potential string value with the numerical value (to enable sorting)
+	isNumericalRowVariable = true
+	
         valueId = 1
 
-        while isIntRowVariable && valueId < length(variablesValues[rvId])
-            if typeof(numericalValue(variablesValues[rvId][valueId])) != Int
+        while (isIntRowVariable || isNumericalRowVariable) && valueId < length(variablesValues[rvId])
+
+	    numV = numericalValue(variablesValues[rvId][valueId])
+            if typeof(numV) == Int
+	        variablesValues[rvId][valueId] = numV
+	    else
                 isIntRowVariable = false
+		
+		if typeof(numV) == Float64
+    	            variablesValues[rvId][valueId] = numV
+		else
+		   isNumericalRowVariable = false
+	        end
             end
             valueId += 1
         end
+
+        try
+            variablesValues[rvId] = sort(variablesValues[rvId])
+	catch e
+	    println("Warning: unable to sort the following values of row variable ", rowVariables[rvId].displayedName, "\n\tvalues: ", variablesValues[rvId])
+	end
 
         if isIntRowVariable
             rowVariables[rvId].digits = 0
