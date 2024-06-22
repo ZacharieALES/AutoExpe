@@ -246,6 +246,12 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
     println(outputstream,  " \\textbf{Total} & ")
     for (colId, colSum) in enumerate(columnsSum)
         if columnsHaveNumericalValues[colId]
+            
+            if colSum > typemax(Int)
+                colSum = typemax(Int)
+            elseif colSum < typemin(Int)
+                colSum = typemin(Int)
+            end 
             if round(Int, colSum) != colSum && abs(colSum) < 10
                 print(outputstream, round(colSum, digits=2))
             else 
@@ -1372,6 +1378,11 @@ function computeTableValue(parameters::ExpeParameters, results::Vector{Any}, col
         meanValue *= column.multiplier
         
         if column.digits == 0
+            if meanValue > typemax(Int)
+                meanValue = typemax(Int)
+            elseif meanValue < typemin(Int)
+                meanValue = typemin(Int)
+            end 
             return round(Int, meanValue), isNumerical
         else
             return round(meanValue, digits=column.digits), isNumerical
