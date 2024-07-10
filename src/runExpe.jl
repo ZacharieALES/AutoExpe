@@ -549,7 +549,9 @@ function readExpeFormat(jsonFilePath::String)
 
         # If there is only one extension
         if !(typeof(extensions) <: Vector)
-            extensions = [extensions]
+            extensions = Vector{String}([extensions])
+        else 
+            extensions = Vector{String}(extensions)
         end 
     end 
 
