@@ -6,11 +6,18 @@ Create a latex table from the results of an autoexperiment.
 The lines of the latex table corresponds to the different possible values of the variables contained in rowVariables (obtained from argument tableStructure).
 The columns of the latex table corresponds to variable columnVariables (idem).
 """
-function createTexTables(parameters::ExpeParameters; compileTexFile::Bool=true)
+function createTexTables(parameters::ExpeParameters; compileTexFile::Bool=true, generateCSVOutput::Bool=true)
 
     outputFile = parameters.latexOutputFile    
+    
     outputstream = open(outputFile, "w")
     println(outputstream, documentHeader())
+
+    csvOutputFile = IOStream(string())
+    if generateCSVOutput
+        csvOutputFile = replace(parameters.latexOutputFile, ".tex" => ".csv")
+        csvOutputstream = open(csvOutputFile, "w")
+    end 
 
     tableConstructed = false
 
@@ -18,7 +25,7 @@ function createTexTables(parameters::ExpeParameters; compileTexFile::Bool=true)
         println(Dates.format(now(), "yyyy/mm/dd - HHhMM:SS"), "\t\t\t Creating table from ", tableStructure)
 
         if isfile(tableStructure)
-            isValid = createTexTable(parameters, tableStructure, outputstream)
+            isValid = createTexTable(parameters, tableStructure, outputstream, csvOutputstream)
             if isValid
                 tableConstructed = true
             end
@@ -29,6 +36,7 @@ function createTexTables(parameters::ExpeParameters; compileTexFile::Bool=true)
 
     println(outputstream, documentFooter()) 
     close(outputstream)
+    close(csvOutputstream)
 
     if compileTexFile && tableConstructed
 
@@ -49,8 +57,10 @@ Create a latex table from the results of an autoexperiment.
 The lines of the latex table corresponds to the different possible values of the variables contained in rowVariables (obtained from argument tableStructure).
 The columns of the latex table corresponds to variable columnVariables (idem).
 """
-function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::String, outputstream::IOStream)
+function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::String, outputstream::IOStream, csvOutputStream::IOStream)
 
+    generateCSVOutput = csvOutputStream != IOStream(string())
+    
     # Get the table format (i.e., structure and features of the table)
     tableParam, rowVariables, columns = readLatexFormat(tableStructureFilePath)
     
@@ -80,8 +90,12 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
     end
 
     # Create the table header to the latex file
-    tableHeader = createTableHeader(tableParam, rowVariables, columns, containColumnGroups)
+    tableHeader, csvHeader = createTableHeader(tableParam, rowVariables, columns, containColumnGroups)
 
+    if generateCSVOutput
+        println(csvOutputStream, csvHeader)
+    end
+    
     # Count the number of rows to split the table if it reaches tableParam.maxRowsInATable
     rowCount = 1
 
@@ -102,6 +116,7 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
 
         # Value of all the row variables
         latexAllRowVariables = ""
+        latexAllRowVariablesCSV = ""
         
         # For each row variable
         for i in 1:length(rowVariables)
@@ -123,8 +138,9 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
                 end
                 displayedValue = numValue
             end
-            
+
             latexAllRowVariables *= string(displayedValue) * " & "
+            latexAllRowVariablesCSV *= string(displayedValue) * ","
             
             if combinationId > 1 && combinationResults.combination[i] != tableCombinations[combinationId-1].combination[i]     
                 latexModifiedRowVariables *= string(displayedValue)
@@ -138,13 +154,16 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
         # If the table represents the mean value over all instances 
         if !tableParam.expandInstances
 
+            if generateCSVOutput
+	        print(csvOutputStream, latexAllRowVariablesCSV)
+            end
             if mustReprintHeader
                 latexRow = latexAllRowVariables
             else 
                 latexRow = latexModifiedRowVariables
             end 
 
-            rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(combinationResults.displayedValues, mustReprintHeader, outputstream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam, containColumnGroups)
+            rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(combinationResults.displayedValues, mustReprintHeader, outputstream, csvOutputStream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam, containColumnGroups)
             
         else # If the result of each instance is on a different line
 
@@ -152,7 +171,6 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
             
             # For each instance
             for instanceId in 1:length(instancesName)
-
                 latexRow = ""
                 if mustReprintHeader
                     latexRow *= latexAllRowVariables
@@ -167,9 +185,13 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
                 instanceName = replace(instanceName, "_" => "\\_")
                 latexRow *= instanceName * " & "
 
+                if generateCSVOutput
+		    print(csvOutputStream, latexAllRowVariablesCSV * instanceName * ",")
+		end
+
                 instanceResults = combinationResults.instancesResults[instancesName[instanceId]]
                 
-                rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(instanceResults.displayedValues, mustReprintHeader, outputstream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam, containColumnGroups) 
+                rowCount, mustReprintHeader, tableHasMissingValues = addResultsToRow(instanceResults.displayedValues, mustReprintHeader, outputstream, csvOutputStream, tableHeader, latexRow, rowCount, tableHasMissingValues, tableParam, containColumnGroups) 
             end
         end
 
@@ -224,6 +246,12 @@ function createTexTable(parameters::ExpeParameters,  tableStructureFilePath::Str
     println(outputstream,  " \\textbf{Total} & ")
     for (colId, colSum) in enumerate(columnsSum)
         if columnsHaveNumericalValues[colId]
+            
+            if colSum > typemax(Int)
+                colSum = typemax(Int)
+            elseif colSum < typemin(Int)
+                colSum = typemin(Int)
+            end 
             if round(Int, colSum) != colSum && abs(colSum) < 10
                 print(outputstream, round(colSum, digits=2))
             else 
@@ -340,36 +368,58 @@ function getVariablesValues(rowVariables::Vector{RowVariable}, results::Vector{D
         for rvId in 1:length(rowVariables)
             rvKey = rowVariables[rvId].valInfo.key
 
-            # If the result contains this variable and if its value in this result is new, add it
-            if haskey(result, rvKey) && !(result[rvKey] in variablesValues[rvId])
+            # If the result contains this variable
+	    if haskey(result, rvKey)
+	    
+                normalizedValue = numericalValue(result[rvKey])
 
-                # If the variable is not part of the parameters of the experiment or if its value in the result is included in the values considered in the experiment
-                # (if the user specify values for a parameter in the experiment, we only want to include in the table results for these values)
-                if !haskey(expeParameters.parametersToCombine, rvKey) || result[rvKey] in expeParameters.parametersToCombine[rvKey]
-                    push!(variablesValues[rvId], result[rvKey])
-                end 
+		# If the value is not numerical
+		if normalizedValue == nothing
+		    normalizedValue = result[rvKey]
+		else
+		    result[rvKey] = normalizedValue
+		end
+	    
+	        # If its value in this result is new, add it
+		if !(normalizedValue in variablesValues[rvId])
+
+                    # If the variable is not part of the parameters of the experiment or if its value in the result is included in the values considered in the experiment
+                    # (if the user specify values for a parameter in the experiment, we only want to include in the table results for these values)
+                    if !haskey(expeParameters.parametersToCombine, rvKey) || normalizedValue in expeParameters.parametersToCombine[rvKey] || result[rvKey] in expeParameters.parametersToCombine[rvKey]
+                        push!(variablesValues[rvId], normalizedValue)
+                    end
+		end
             end 
         end 
     end
     
     # Sort each array
     for rvId in 1:length(rowVariables)
-        variablesValues[rvId] = sort(variablesValues[rvId])
 
         # If the row variable only contains integer values, set its number of displayed digits to 0
         isIntRowVariable = true
+
         valueId = 1
 
         while isIntRowVariable && valueId < length(variablesValues[rvId])
-            if typeof(numericalValue(variablesValues[rvId][valueId])) != Int
+
+	    numV = numericalValue(variablesValues[rvId][valueId])
+            if typeof(numV) == Int
+	        variablesValues[rvId][valueId] = numV
+	    else
                 isIntRowVariable = false
             end
             valueId += 1
         end
 
-        if isIntRowVariable
-            rowVariables[rvId].digits = 0
-        end 
+        try
+            variablesValues[rvId] = sort(variablesValues[rvId])
+            if isIntRowVariable
+                rowVariables[rvId].digits = 0
+            end 
+	catch e
+	    println("Warning: unable to sort the following values of row variable ", rowVariables[rvId].displayedName, "\n\tvalues: ", variablesValues[rvId])
+	end
     end
 
     return variablesValues
@@ -1328,6 +1378,11 @@ function computeTableValue(parameters::ExpeParameters, results::Vector{Any}, col
         meanValue *= column.multiplier
         
         if column.digits == 0
+            if meanValue > typemax(Int)
+                meanValue = typemax(Int)
+            elseif meanValue < typemin(Int)
+                meanValue = typemin(Int)
+            end 
             return round(Int, meanValue), isNumerical
         else
             return round(meanValue, digits=column.digits), isNumerical
@@ -1385,7 +1440,7 @@ function setBoldValuesInGroup(group::ColumnGroup, groupValues::Vector{TableValue
 end 
 
 function createTableHeader(tableParam, rowVariables, columns, containColumnGroups)
-    
+
     # Create the table header
     tableHeader = raw"""
     \begin{center}
@@ -1408,7 +1463,7 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
     end
     
     lastColumnHasVline = false
-    
+
     for column in columns
         if typeof(column) == ColumnGroup
             for col in column.columns
@@ -1446,9 +1501,13 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
     tableHeader *= "@{}r@{}}\n"
     tableHeader *= raw"""\hline"""
 
+    csvCGHeader = ""
+    csvSecondHeader = ""
     # For each row variable
     for rowVar in rowVariables
 
+        csvCGHeader *= ", "
+	csvSecondHeader *= rowVar.displayedName * ", "
         if containColumnGroups
             tableHeader *= raw"""\multirow{2}{*}{\textbf{""" * rowVar.displayedName * "}} & " 
         else
@@ -1457,6 +1516,8 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
     end
 
     if tableParam.expandInstances
+        csvCGHeader *= ", "
+	csvSecondHeader *= "Instance, "
         if containColumnGroups
             tableHeader *= raw"""\multirow{2}{*}{\textbf{Instance}} & """
         else 
@@ -1467,6 +1528,12 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
     # For each result column
     for column in columns
         if typeof(column) == ColumnGroup
+
+            csvCGHeader *= column.groupName * ", "^length(column.columns)
+            for col in column.columns
+                csvSecondHeader *= col.columnName * ", "
+            end
+	    
             tableHeader *= raw"""\multicolumn{""" * string(length(column.columns)) * "}{c"
 
             # If
@@ -1479,6 +1546,8 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
 
             tableHeader *= raw"""}{\textbf{""" * column.groupName * "}} & "
         else
+	    csvCGHeader *= ", "
+	    csvSecondHeader *= column.columnName
             if containColumnGroups
                 tableHeader *= raw"""\multirow{2}{*}{\textbf{\mbox{\textbf{""" * join(column.columnName) * "}}}} & "
             else
@@ -1492,9 +1561,7 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
         tableHeader *= raw"""\\\\"""
         tableHeader *= "\n"
 
-        for i in 1:length(rowVariables)
-            tableHeader *= "&"
-        end
+        tableHeader *= "&"^length(rowVariables)
 
         if tableParam.expandInstances
             tableHeader *= "&"
@@ -1513,7 +1580,10 @@ function createTableHeader(tableParam, rowVariables, columns, containColumnGroup
 
     tableHeader *= raw"""\\\hline""" * "\n\n"
 
-    return tableHeader
+    if containColumnGroups
+        csvSecondHeader = csvCGHeader * "\n" * csvSecondHeader
+    end
+    return tableHeader, csvSecondHeader
 end 
 
 """
@@ -1556,7 +1626,9 @@ Input
 - tableHasMissingValues: true if the current table has missing values
 - tableParam: parameters of the table
 """
-function addResultsToRow(tableValues::Vector{TableValue}, mustReprintHeader::Bool, outputstream, tableHeader::String, latexRow::String, rowCount::Int, tableHasMissingValues::Bool, tableParam::TableParameters, containColumnGroups::Bool)
+function addResultsToRow(tableValues::Vector{TableValue}, mustReprintHeader::Bool, outputstream, csvOutputStream, tableHeader::String, latexRow::String, rowCount::Int, tableHasMissingValues::Bool, tableParam::TableParameters, containColumnGroups::Bool)
+
+    generateCSVOutput = csvOutputStream != IOStream(string())
 
     if mustReprintHeader
         println(outputstream, tableHeader)
@@ -1564,10 +1636,20 @@ function addResultsToRow(tableValues::Vector{TableValue}, mustReprintHeader::Boo
     end
     
     for tableValue in tableValues
+        if generateCSVOutput
+	    if tableValue.value != nothing
+                print(csvOutputStream, tableValue.value)
+	    end
+	    print(csvOutputStream, ",")
+	end
         latexRow *= tableValue.displayedValue * " & "
         if tableValue.isMissingMethodResults
             tableHasMissingValues = true
         end 
+    end
+
+    if generateCSVOutput
+        println(csvOutputStream)
     end
 
     println(outputstream, latexRow * "\\\\\n\n")
